@@ -9,135 +9,131 @@
 body{
   margin:0;
   font-family:Tahoma;
-  background:linear-gradient(135deg,#141e30,#243b55);
-  color:white;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color:#fff;
 }
 .hidden{display:none}
 header{
   background:#000;
-  padding:15px;
-  text-align:center;
-  font-size:22px;
-  font-weight:bold;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.balance{
+  background:#111;
+  padding:6px 10px;
+  border-radius:8px;
 }
 .container{padding:20px}
-.box{
-  background:#111;
-  padding:20px;
-  border-radius:12px;
-  max-width:360px;
-  margin:auto;
-}
-input,select,textarea,button{
-  width:100%;
-  padding:10px;
-  margin:8px 0;
-  border-radius:6px;
-  border:none;
-}
-button{
-  background:#00c6ff;
-  font-weight:bold;
-  cursor:pointer;
-}
 .grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
   gap:15px;
 }
 .card{
-  background:#1a1a1a;
+  background:#111;
   padding:20px;
   border-radius:12px;
   text-align:center;
   cursor:pointer;
 }
-.status{
-  background:#000;
-  padding:15px;
-  border-radius:10px;
-  text-align:center;
+button,input,select{
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  border:none;
+  border-radius:6px;
 }
+button{background:#00c6ff;font-weight:bold}
 </style>
 </head>
 
 <body>
 
-<header>Ahmed Shop</header>
+<header>
+  <div>Ahmed Shop</div>
+  <div class="balance" id="balanceBox">$0</div>
+</header>
 
 <!-- LOGIN -->
 <div id="login" class="container">
-  <div class="box">
-    <h3>تسجيل الدخول</h3>
-    <input id="l_email" placeholder="الإيميل">
-    <input id="l_pass" type="password" placeholder="كلمة المرور">
-    <button onclick="login()">دخول</button>
-    <p onclick="show('register')" style="cursor:pointer">إنشاء حساب</p>
-  </div>
+  <input id="le" placeholder="Email">
+  <input id="lp" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <button onclick="show('register')">Create Account</button>
 </div>
 
 <!-- REGISTER -->
 <div id="register" class="container hidden">
-  <div class="box">
-    <h3>إنشاء حساب</h3>
-    <input id="r_name" placeholder="الاسم">
-    <input id="r_email" placeholder="الإيميل">
-    <input id="r_pass" type="password" placeholder="كلمة المرور">
-    <select id="r_currency">
-      <option value="USD">دولار ($)</option>
-      <option value="TRY">ليرة تركية</option>
-      <option value="SYP">ليرة سورية</option>
-    </select>
-    <button onclick="register()">إنشاء الحساب</button>
-    <button onclick="show('login')">رجوع</button>
-  </div>
+  <input id="re" placeholder="Email">
+  <input id="rp" type="password" placeholder="Password">
+  <select id="cur">
+    <option value="$">$ USD</option>
+    <option value="₺">TRY ₺</option>
+    <option value="£">SYP £</option>
+  </select>
+  <button onclick="register()">Register</button>
 </div>
 
 <!-- HOME -->
 <div id="home" class="container hidden">
   <div class="grid">
-    <div class="card" onclick="openSection('topup')">💰 تعبئة الرصيد</div>
-    <div class="card" onclick="openSection('games')">🎮 شحن الألعاب</div>
-    <div class="card" onclick="openSection('apps')">📱 شحن التطبيقات</div>
-    <div class="card" onclick="openSection('numbers')">📞 الأرقام</div>
-  </div>
-  <br>
-  <button onclick="logout()">تسجيل خروج</button>
-</div>
-
-<!-- SECTION TEMPLATE -->
-<div id="section" class="container hidden">
-  <div class="box">
-    <h3 id="sectionTitle"></h3>
-    <input placeholder="ضع الـ ID أو الرقم">
-    <textarea placeholder="ملاحظات (اختياري)"></textarea>
-    <input id="amount" type="number" placeholder="المبلغ (الحد الأدنى 5$)">
-    <input id="img" type="file" accept="image/*">
-    <button onclick="submitOrder()">إرسال الطلب</button>
-    <button onclick="show('home')">رجوع</button>
+    <div class="card" onclick="openGames()">🎮 Games</div>
+    <div class="card" onclick="openApps()">📱 Apps</div>
+    <div class="card" onclick="openNumbers()">📞 Numbers</div>
+    <div class="card" onclick="openSettings()">⚙️ Settings</div>
   </div>
 </div>
 
-<!-- WAIT -->
-<div id="wait" class="container hidden">
-  <div class="status">
-    سيتم تعبئة حسابك في أقرب وقت ممكن<br>
-    من دقيقة إلى خمس دقائق<br>
-    يرجى الانتظار
-  </div>
+<!-- GAMES -->
+<div id="games" class="container hidden">
+  <div class="card" onclick="openFF()">Free Fire</div>
+  <div class="card" onclick="openPUBG()">PUBG Mobile</div>
+  <button onclick="back()">Back</button>
 </div>
 
-<!-- REJECT -->
-<div id="reject" class="container hidden">
-  <div class="status">
-    ❌ تم رفض الطلب لانتهاء الوقت
-  </div>
-  <button onclick="show('home')">العودة للرئيسية</button>
+<!-- FREE FIRE -->
+<div id="ff" class="container hidden">
+  <div class="card">100 💎 = 0.5$</div>
+  <div class="card">200 💎 = 1$</div>
+  <div class="card">300 💎 = 1.5$</div>
+  <div class="card">400 💎 = 2$</div>
+  <button onclick="back()">Back</button>
+</div>
+
+<!-- PUBG -->
+<div id="pubg" class="container hidden">
+  <div class="card">60 UC = 0.5$</div>
+  <div class="card">120 UC = 1$</div>
+  <div class="card">300 UC = 2$</div>
+  <button onclick="back()">Back</button>
+</div>
+
+<!-- APPS -->
+<div id="apps" class="container hidden">
+  <div class="card">Shahid</div>
+  <button onclick="back()">Back</button>
+</div>
+
+<!-- NUMBERS -->
+<div id="numbers" class="container hidden">
+  <div class="card">WhatsApp</div>
+  <div class="card">Telegram</div>
+  <button onclick="back()">Back</button>
+</div>
+
+<!-- SETTINGS -->
+<div id="settings" class="container hidden">
+  <select onchange="changeLang(this.value)">
+    <option value="ar">العربية</option>
+    <option value="en">English</option>
+  </select>
+  <button onclick="logout()">Logout</button>
 </div>
 
 <script>
-let currentUser=null;
-let timer=null;
+let user=null, lang="ar";
 
 function show(id){
   document.querySelectorAll(".container").forEach(d=>d.classList.add("hidden"));
@@ -145,57 +141,42 @@ function show(id){
 }
 
 function register(){
-  const user={
-    name:r_name.value,
-    email:r_email.value,
-    pass:r_pass.value,
-    currency:r_currency.value
-  };
-  if(!user.name||!user.email||!user.pass){
-    alert("جميع الحقول مطلوبة");
-    return;
-  }
-  localStorage.setItem("user_"+user.email,JSON.stringify(user));
-  alert("تم إنشاء الحساب");
+  localStorage.setItem("user",JSON.stringify({
+    email:re.value,
+    pass:rp.value,
+    cur:cur.value,
+    bal:0
+  }));
+  alert("Account created");
   show("login");
 }
 
 function login(){
-  const data=localStorage.getItem("user_"+l_email.value);
-  if(!data){alert("الحساب غير موجود");return}
-  const user=JSON.parse(data);
-  if(user.pass!==l_pass.value){
-    alert("كلمة المرور خاطئة");
-    return;
+  const u=JSON.parse(localStorage.getItem("user"));
+  if(!u||u.email!==le.value||u.pass!==lp.value){
+    alert("Login error");return;
   }
-  currentUser=user;
+  user=u;
+  updateBalance();
   show("home");
 }
 
-function logout(){
-  currentUser=null;
-  show("login");
+function updateBalance(){
+  balanceBox.innerText=user.cur+user.bal;
 }
 
-function openSection(type){
-  sectionTitle.innerText=
-    type==="topup"?"تعبئة الرصيد (شام كاش)":
-    type==="games"?"شحن الألعاب":
-    type==="apps"?"شحن التطبيقات":
-    "قسم الأرقام";
-  show("section");
-}
+function logout(){user=null;show("login")}
+function back(){show("home")}
+function openGames(){show("games")}
+function openFF(){show("ff")}
+function openPUBG(){show("pubg")}
+function openApps(){show("apps")}
+function openNumbers(){show("numbers")}
+function openSettings(){show("settings")}
 
-function submitOrder(){
-  const amount=+document.getElementById("amount").value;
-  const img=document.getElementById("img").files[0];
-  if(amount<5){alert("الحد الأدنى 5$");return}
-  if(!img){alert("الصورة مطلوبة");return}
-
-  show("wait");
-  timer=setTimeout(()=>{
-    show("reject");
-  },300000);
+function changeLang(l){
+  lang=l;
+  alert(l==="ar"?"تم تغيير اللغة":"Language changed");
 }
 </script>
 
