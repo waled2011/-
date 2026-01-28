@@ -2,101 +2,160 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>متجر عام</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Store Engine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-*{box-sizing:border-box;font-family:Tahoma}
-body{margin:0;background:#0f172a;color:#fff}
-header{padding:15px;background:#020617;text-align:center;font-size:20px}
-.store{max-width:1000px;margin:auto;padding:15px}
-.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px}
-.card{background:#020617;border-radius:12px;padding:15px;box-shadow:0 0 10px rgba(0,0,0,.5)}
-.card h3{margin:0 0 5px}
-.card p{font-size:13px;color:#cbd5e1}
-.price{font-size:18px;color:#22c55e;margin:10px 0}
-button{width:100%;padding:8px;border:none;border-radius:8px;
-background:#22c55e;color:#000;font-weight:bold;cursor:pointer}
-button:hover{opacity:.9}
-.cart{position:fixed;bottom:15px;right:15px;
-background:#22c55e;color:#000;
-padding:12px;border-radius:50%;font-weight:bold}
-.cartBox{
-position:fixed;top:0;right:-100%;
-width:300px;height:100%;
-background:#020617;padding:15px;
-transition:.3s
+:root{
+  --bg:#0b1220;
+  --panel:#111827;
+  --accent:#38bdf8;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
 }
-.cartBox.active{right:0}
-.cartItem{border-bottom:1px solid #334155;padding:5px 0;font-size:14px}
-.total{margin-top:10px;font-size:18px}
-.close{background:#ef4444;color:#fff;margin-top:10px}
+*{box-sizing:border-box;font-family:system-ui}
+body{margin:0;background:var(--bg);color:var(--text)}
+header{
+  padding:14px;
+  background:#020617;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+header span{color:var(--accent);font-weight:bold}
+main{padding:15px;max-width:1100px;margin:auto}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:15px;
+}
+.product{
+  background:var(--panel);
+  border-radius:14px;
+  padding:15px;
+  display:flex;
+  flex-direction:column;
+}
+.product h3{margin:0;font-size:16px}
+.product p{font-size:13px;color:var(--muted)}
+.price{margin-top:auto;font-size:18px;color:var(--accent)}
+.product button{
+  margin-top:8px;
+  padding:8px;
+  border:none;
+  border-radius:8px;
+  background:var(--accent);
+  font-weight:bold;
+  cursor:pointer;
+}
+.cartBtn{
+  background:var(--accent);
+  color:#000;
+  padding:6px 12px;
+  border-radius:20px;
+  cursor:pointer;
+}
+aside{
+  position:fixed;
+  right:-360px;
+  top:0;
+  width:340px;
+  height:100%;
+  background:#020617;
+  padding:15px;
+  transition:.3s;
+}
+aside.active{right:0}
+.cartItem{
+  border-bottom:1px solid #1f2933;
+  padding:6px 0;
+  font-size:14px;
+}
+.total{
+  margin-top:10px;
+  font-size:18px;
+}
+.close{
+  background:#ef4444;
+  border:none;
+  width:100%;
+  padding:8px;
+  border-radius:8px;
+  margin-top:10px;
+  color:#fff;
+}
 </style>
 </head>
 
 <body>
 
-<header>🛒 متجر رقمي عام</header>
+<header>
+  <div>🛒 <span>Store Engine</span></div>
+  <div class="cartBtn" onclick="toggleCart()">السلة (<span id="count">0</span>)</div>
+</header>
 
-<div class="store">
-  <div class="products" id="products"></div>
-</div>
+<main>
+  <div class="grid" id="store"></div>
+</main>
 
-<div class="cart" onclick="toggleCart()">🧺</div>
-
-<div class="cartBox" id="cartBox">
-  <h3>سلة المشتريات</h3>
-  <div id="cartItems"></div>
-  <div class="total" id="total"></div>
+<aside id="cart">
+  <h3>سلة الطلب</h3>
+  <div id="items"></div>
+  <div class="total" id="sum">الإجمالي: $0</div>
   <button class="close" onclick="toggleCart()">إغلاق</button>
-</div>
+</aside>
 
 <script>
-// ================== المنتجات ==================
-const products = [
-  {id:1,name:"100 جوهرة فري فاير",price:1,desc:"توصيل سريع"},
-  {id:2,name:"60 UC ببجي",price:1,desc:"تفعيل مباشر"},
-  {id:3,name:"متابعين تيك توك",price:2.5,desc:"ضمان سنة"},
-  {id:4,name:"منتج رقمي عام",price:5,desc:"قابل للتعديل"}
+/* =====================
+   Store Core (عام)
+===================== */
+
+// منتجات – أي شخص يغيرها
+const STORE_PRODUCTS = [
+  {id:1,title:"منتج رقمي",price:5,desc:"وصف عام"},
+  {id:2,title:"اشتراك شهري",price:10,desc:"صالح 30 يوم"},
+  {id:3,title:"خدمة إلكترونية",price:2.5,desc:"تنفيذ سريع"},
+  {id:4,title:"عنصر مخصص",price:1,desc:"قابل للتعديل"}
 ];
 
-// ================== السلة ==================
-let cart = [];
+// السلة
+let CART = [];
 
-// ================== عرض المنتجات ==================
-const productsDiv = document.getElementById("products");
-products.forEach(p=>{
-  productsDiv.innerHTML += `
-  <div class="card">
-    <h3>${p.name}</h3>
+// عرض المتجر
+const store = document.getElementById("store");
+STORE_PRODUCTS.forEach(p=>{
+  store.innerHTML += `
+  <div class="product">
+    <h3>${p.title}</h3>
     <p>${p.desc}</p>
     <div class="price">$${p.price}</div>
-    <button onclick="addToCart(${p.id})">إضافة للسلة</button>
+    <button onclick="add(${p.id})">إضافة</button>
   </div>`;
 });
 
-// ================== إضافة للسلة ==================
-function addToCart(id){
-  const item = products.find(p=>p.id===id);
-  cart.push(item);
-  renderCart();
+// إضافة للسلة
+function add(id){
+  const product = STORE_PRODUCTS.find(p=>p.id===id);
+  CART.push(product);
+  render();
 }
 
-// ================== عرض السلة ==================
-function renderCart(){
-  const cartItems = document.getElementById("cartItems");
-  cartItems.innerHTML="";
+// تحديث السلة
+function render(){
+  const items = document.getElementById("items");
+  items.innerHTML="";
   let total=0;
-  cart.forEach(i=>{
-    total+=i.price;
-    cartItems.innerHTML += `<div class="cartItem">${i.name} - $${i.price}</div>`;
+  CART.forEach(p=>{
+    total+=p.price;
+    items.innerHTML += `<div class="cartItem">${p.title} - $${p.price}</div>`;
   });
-  document.getElementById("total").innerText="المجموع: $" + total;
+  document.getElementById("sum").innerText = "الإجمالي: $" + total;
+  document.getElementById("count").innerText = CART.length;
 }
 
-// ================== فتح / إغلاق السلة ==================
+// فتح / إغلاق السلة
 function toggleCart(){
-  document.getElementById("cartBox").classList.toggle("active");
+  document.getElementById("cart").classList.toggle("active");
 }
 </script>
 
