@@ -1,296 +1,203 @@
-<!DOCTYPE html>
+
+</body><!DOCTYPE html>
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
 <title>Ahmed Shop</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
 <style>
 body{
-margin:0;
-font-family:Tahoma,Arial;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-color:#fff;
-direction:rtl;
+  margin:0;
+  font-family:Tahoma;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color:white;
 }
 .hidden{display:none}
-header{
-background:#111;
-padding:10px;
-display:flex;
-justify-content:space-between;
-align-items:center;
+.center{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
 }
-.balance{
-background:#222;
-padding:6px 14px;
-border-radius:20px;
-font-weight:bold;
+.box{
+  background:#111;
+  padding:20px;
+  border-radius:12px;
+  width:320px;
+  box-shadow:0 0 20px rgba(0,0,0,.6);
 }
-.container{padding:15px}
-.cards{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:15px;
-margin-top:20px;
+input,select,button,textarea{
+  width:100%;
+  margin:8px 0;
+  padding:10px;
+  border-radius:6px;
+  border:none;
+}
+button{
+  background:#00c6ff;
+  color:#000;
+  font-weight:bold;
+  cursor:pointer;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:15px;
 }
 .card{
-background:#1e1e1e;
-border-radius:15px;
-padding:25px;
-text-align:center;
-cursor:pointer;
+  background:#1c1c1c;
+  padding:20px;
+  border-radius:10px;
+  text-align:center;
+  cursor:pointer;
 }
-button,input,select{
-width:100%;
-padding:10px;
-margin:6px 0;
-border-radius:8px;
-border:none;
-}
-button{background:#00d4ff;font-weight:bold}
-.product{
-background:#222;
-padding:10px;
-border-radius:10px;
-margin:8px 0;
-}
-.adminBtn{background:red;color:#fff;margin-top:5px}
-.nav{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:#111;
-display:flex;
-justify-content:space-around;
-padding:10px 0;
+.top-left{
+  position:fixed;
+  top:10px;
+  left:10px;
+  background:#000;
+  padding:8px 12px;
+  border-radius:8px;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-<div>🛒 Ahmed Shop</div>
-<div class="balance">
-<span id="balTxt">الرصيد</span>:
-<span id="bal">0</span>
-<span id="cur">USD</span>
-</div>
-</header>
-
-<!-- تسجيل -->
-<div class="container" id="auth">
-<h3>تسجيل / إنشاء حساب</h3>
-<input id="name" placeholder="الاسم">
-<input id="email" placeholder="الإيميل">
-<input id="pass" type="password" placeholder="كلمة المرور">
-<select id="currency">
-<option value="USD">USD</option>
-<option value="TRY">TRY</option>
-<option value="SYP">SYP</option>
-</select>
-<button onclick="register()">إنشاء حساب</button>
-<button onclick="login()">تسجيل دخول</button>
-<p id="msg"></p>
+<div id="balanceBox" class="top-left hidden">
+رصيدك: <span id="balance">0</span> $
 </div>
 
-<!-- الرئيسية -->
-<div class="container hidden" id="home">
-<div class="cards">
-<div class="card" onclick="openSection('games')">🎮 الألعاب</div>
-<div class="card" onclick="openSection('apps')">📱 التطبيقات</div>
-<div class="card" onclick="openWallet()">💳 تعبئة الرصيد</div>
-<div class="card" onclick="openOrders()">📦 الطلبات</div>
-</div>
-</div>
-
-<!-- محتوى -->
-<div class="container hidden" id="content"></div>
-
-<!-- الإعدادات -->
-<div class="container hidden" id="settings">
-<h3>الإعدادات</h3>
-<button onclick="setLang('ar')">العربية</button>
-<button onclick="setLang('en')">English</button>
-<button onclick="changePass()">تغيير كلمة المرور</button>
-<p>الدعم: +9635022404</p>
+<!-- LOGIN -->
+<div id="login" class="center">
+  <div class="box">
+    <h3>تسجيل الدخول</h3>
+    <input id="email" placeholder="البريد الإلكتروني">
+    <input id="password" type="password" placeholder="كلمة المرور">
+    <button onclick="login()">دخول</button>
+    <hr>
+    <button onclick="showRegister()">إنشاء حساب</button>
+  </div>
 </div>
 
-<div class="nav hidden" id="nav">
-<div onclick="goHome()">🏠</div>
-<div onclick="openOrders()">📦</div>
-<div onclick="openSettings()">⚙️</div>
-<div onclick="logout()">🚪</div>
+<!-- REGISTER -->
+<div id="register" class="center hidden">
+  <div class="box">
+    <h3>إنشاء حساب</h3>
+    <input id="rname" placeholder="الاسم">
+    <input id="remail" placeholder="الإيميل">
+    <input id="rpassword" type="password" placeholder="كلمة المرور">
+    <select id="currency">
+      <option value="USD">دولار</option>
+      <option value="TRY">ليرة تركية</option>
+      <option value="SYP">ليرة سورية</option>
+    </select>
+    <button onclick="register()">إنشاء</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="home" class="center hidden">
+  <div class="box">
+    <div class="grid">
+      <div class="card" onclick="openSection('games')">🎮 الألعاب</div>
+      <div class="card" onclick="openSection('apps')">📱 التطبيقات</div>
+      <div class="card" onclick="openSection('topup')">💰 تعبئة الرصيد</div>
+      <div class="card" onclick="openSection('orders')">📦 الطلبات</div>
+      <div class="card" onclick="openSection('settings')">⚙️ الإعدادات</div>
+      <div class="card" onclick="logout()">🚪 خروج</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOPUP -->
+<div id="topup" class="center hidden">
+  <div class="box">
+    <h3>تعبئة رصيد</h3>
+    <p>حوّل إلى:</p>
+    <b>29607b06505ee18f34a7fc5022404325</b>
+    <input id="amount" type="number" placeholder="المبلغ (>=5$)">
+    <input id="img" type="file" accept="image/*">
+    <button onclick="submitTopup()">إرسال</button>
+    <button onclick="back()">رجوع</button>
+  </div>
+</div>
+
+<!-- MESSAGE -->
+<div id="msg" class="center hidden">
+  <div class="box">
+    <h3>تم إرسال الطلب</h3>
+    <p>انتظر من 1 إلى 5 دقائق</p>
+  </div>
 </div>
 
 <script>
-const admin="wled49645@gmail.com";
+// 🔥 ضع بيانات Firebase هنا
+firebase.initializeApp({
+  apiKey: "API_KEY",
+  authDomain: "PROJECT.firebaseapp.com",
+  projectId: "PROJECT",
+  storageBucket: "PROJECT.appspot.com",
+});
 
-/* مستخدمين */
-function users(){return JSON.parse(localStorage.getItem("users")||"{}")}
-function saveUsers(u){localStorage.setItem("users",JSON.stringify(u))}
+const auth=firebase.auth();
+const db=firebase.firestore();
+const storage=firebase.storage();
 
-/* تسجيل */
+const ADMIN="wled49645@gmail.com";
+
+function show(id){
+  document.querySelectorAll("body>div").forEach(d=>d.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function showRegister(){show("register")}
+function back(){show("home")}
+
 function register(){
-let u=users();
-if(u[email.value]){msg.innerText="الحساب موجود";return;}
-u[email.value]={name:name.value,pass:pass.value,currency:currency.value,balance:0};
-saveUsers(u);
-msg.innerText="تم إنشاء الحساب، سجل دخول";
+  const email=remail.value;
+  const pass=rpassword.value;
+  if(!email||!pass){alert("بيانات ناقصة");return}
+  auth.createUserWithEmailAndPassword(email,pass).then(u=>{
+    db.collection("users").doc(u.user.uid).set({
+      name:rname.value,
+      currency:currency.value,
+      balance:0,
+      role: email===ADMIN?"admin":"user"
+    });
+    show("home");
+  }).catch(e=>alert(e.message));
 }
+
 function login(){
-let u=users()[email.value];
-if(!u||u.pass!==pass.value){msg.innerText="بيانات خاطئة";return;}
-localStorage.setItem("current",email.value);
-loadApp();
+  auth.signInWithEmailAndPassword(email.value,password.value)
+  .then(()=>show("home"))
+  .catch(e=>alert(e.message));
 }
+
 function logout(){
-localStorage.removeItem("current");
-location.reload();
+  auth.signOut();
+  show("login");
 }
 
-/* تحميل */
-function loadApp(){
-let e=localStorage.getItem("current");
-let u=users()[e];
-auth.classList.add("hidden");
-home.classList.remove("hidden");
-nav.classList.remove("hidden");
-bal.innerText=u.balance;
-cur.innerText=u.currency;
+function openSection(id){
+  show(id);
 }
 
-/* تنقل */
-function hideAll(){
-home.classList.add("hidden");
-content.classList.add("hidden");
-settings.classList.add("hidden");
+function submitTopup(){
+  const amt=+amount.value;
+  if(amt<5){alert("الحد الأدنى 5$");return}
+  if(!img.files[0]){alert("الصورة مطلوبة");return}
+  show("msg");
 }
-function goHome(){
-hideAll();
-home.classList.remove("hidden");
-}
-
-/* أقسام */
-let currentCat="";
-function openSection(cat){
-hideAll();
-currentCat=cat;
-content.classList.remove("hidden");
-content.innerHTML="<h3>"+cat+"</h3>";
-let p=JSON.parse(localStorage.getItem("products")||"[]");
-
-p.forEach((x,i)=>{
-if(x.cat===cat){
-content.innerHTML+=`
-<div class="product">
-${x.name} - ${x.price}
-<button onclick="buy('${x.name}')">شراء</button>
-${localStorage.getItem("current")===admin?
-`<button class="adminBtn" onclick="delProd(${i})">حذف</button>`:""}
-</div>`;
-}
-});
-
-if(localStorage.getItem("current")===admin){
-content.innerHTML+=`
-<h4>إضافة منتج</h4>
-<input id="pn" placeholder="اسم المنتج">
-<input id="pp" type="number" placeholder="السعر">
-<button onclick="addProd()">إضافة</button>`;
-}
-}
-
-/* منتجات */
-function addProd(){
-let p=JSON.parse(localStorage.getItem("products")||"[]");
-p.push({name:pn.value,price:pp.value,cat:currentCat});
-localStorage.setItem("products",JSON.stringify(p));
-openSection(currentCat);
-}
-function delProd(i){
-let p=JSON.parse(localStorage.getItem("products")||"[]");
-p.splice(i,1);
-localStorage.setItem("products",JSON.stringify(p));
-openSection(currentCat);
-}
-
-/* شراء */
-function buy(name){
-let o=JSON.parse(localStorage.getItem("orders")||"[]");
-o.push({user:localStorage.getItem("current"),name:name,status:"قيد التنفيذ"});
-localStorage.setItem("orders",JSON.stringify(o));
-alert("تم إنشاء الطلب");
-}
-
-/* الطلبات */
-function openOrders(){
-hideAll();
-content.classList.remove("hidden");
-content.innerHTML="<h3>الطلبات</h3>";
-let o=JSON.parse(localStorage.getItem("orders")||"[]");
-o.forEach((x,i)=>{
-if(x.user===localStorage.getItem("current")||localStorage.getItem("current")===admin){
-content.innerHTML+=`
-<div class="product">
-${x.name} - ${x.status}
-${localStorage.getItem("current")===admin?
-`<button onclick="setStatus(${i},'تم التنفيذ')">✔</button>
-<button onclick="setStatus(${i},'مرفوض')">✖</button>`:""}
-</div>`;
-}
-});
-}
-function setStatus(i,s){
-let o=JSON.parse(localStorage.getItem("orders"));
-o[i].status=s;
-localStorage.setItem("orders",JSON.stringify(o));
-openOrders();
-}
-
-/* تعبئة */
-function openWallet(){
-hideAll();
-content.classList.remove("hidden");
-content.innerHTML=`
-<h3>تعبئة الرصيد</h3>
-<p>الحد الأدنى 5 USD</p>
-<b>29607b06505ee18f34a7fc5022404325</b>
-<input id="amount" type="number" placeholder="المبلغ">
-<input id="img" type="file" accept="image/*">
-<button onclick="sendTopup()">إرسال</button>`;
-}
-function sendTopup(){
-if(amount.value<5){alert("الحد الأدنى 5$");return;}
-if(!img.files[0]){alert("الصورة مطلوبة");return;}
-content.innerHTML=`
-<h3>تم إرسال طلب تعبئة الرصيد</h3>
-<p>يرجى الانتظار من دقيقة إلى 5 دقائق</p>`;
-}
-
-/* إعدادات */
-function openSettings(){
-hideAll();
-settings.classList.remove("hidden");
-}
-function changePass(){
-let n=prompt("كلمة مرور جديدة");
-let u=users();
-u[localStorage.getItem("current")].pass=n;
-saveUsers(u);
-alert("تم التغيير");
-}
-
-/* لغة */
-function setLang(l){
-document.body.dir=l==="ar"?"rtl":"ltr";
-balTxt.innerText=l==="ar"?"الرصيد":"Balance";
-}
-
-/* تشغيل */
-if(localStorage.getItem("current"))loadApp();
 </script>
 
 </body>
-</html>
+</html></html>
