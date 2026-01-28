@@ -1,227 +1,236 @@
+{
+  "name": "gem-shop",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "sqlite3": "^5.1.7"
+  }
+}
+const express = require("express");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const sqlite = require("sqlite3").verbose();
+const cors = require("cors");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use(express.static("public"));
+
+const db = new sqlite.Database("database.db");
+const SECRET = "SUPER_SECRET_KEY";
+
+// إنشاء الجداول
+db.serialize(() => {
+  db.run(`CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE,
+    password TEXT,
+    balance REAL DEFAULT 0,
+    role TEXT
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    product TEXT,
+    game_id TEXT,
+    status TEXT
+  )`);
+});
+
+// الأدمن الوحيد
+const ADMIN_EMAIL = "wled49645@gmail.com";
+const ADMIN_PASSWORD = "wled12123456";
+
+db.get("SELECT * FROM users WHERE email=?", [ADMIN_EMAIL], async (err, user) => {
+  if (!user) {
+    const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+    db.run(
+      "INSERT INTO users (email,password,role,balance) VALUES (?,?,?,?)",
+      [ADMIN_EMAIL, hash, "admin", 0]
+    );
+  }
+});
+
+// تسجيل حساب
+app.post("/api/register", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.sendStatus(400);
+
+  const hash = await bcrypt.hash(password, 10);
+  db.run(
+    "INSERT INTO users (email,password,role) VALUES (?,?,?)",
+    [email, hash, "user"],
+    err => err ? res.sendStatus(409) : res.sendStatus(200)
+  );
+});
+
+// تسجيل دخول
+app.post("/api/login", (req, res) => {
+  const { email, password } = req.body;
+  db.get("SELECT * FROM users WHERE email=?", [email], async (err, user) => {
+    if (!user) return res.sendStatus(401);
+    const ok = await bcrypt.compare(password, user.password);
+    if (!ok) return res.sendStatus(401);
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      SECRET
+    );
+
+    res.json({
+      token,
+      balance: user.balance,
+      role: user.role
+    });
+  });
+});
+
+// إنشاء طلب شحن
+app.post("/api/order", (req, res) => {
+  const { userId, product, gameId } = req.body;
+  db.run(
+    "INSERT INTO orders (user_id,product,game_id,status) VALUES (?,?,?,?)",
+    [userId, product, gameId, "قيد التنفيذ"],
+    () => res.sendStatus(200)
+  );
+});
+
+// جلب الطلبات
+app.get("/api/orders/:userId", (req, res) => {
+  db.all(
+    "SELECT * FROM orders WHERE user_id=?",
+    [req.params.userId],
+    (err, rows) => res.json(rows)
+  );
+});
+
+app.listen(3000, () =>
+  console.log("Gem Shop Running http://localhost:3000")
+);
 <!DOCTYPE html>
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gem Shop</title>
-
-<style>
-*{box-sizing:border-box;font-family:Arial}
-body{
-margin:0;
-background:#0c0c0c;
-display:flex;
-justify-content:center;
-color:#fff;
-}
-.app{
-width:100%;
-max-width:390px;
-min-height:100vh;
-padding:15px;
-background:linear-gradient(160deg,#ff8a00,#ff3d00);
-}
-.hidden{display:none}
-.center{text-align:center;margin-top:70px}
-
-button,input{
-width:100%;
-padding:10px;
-margin:8px 0;
-border:none;
-border-radius:8px;
-font-size:14px;
-}
-button{
-background:#111;
-color:#fff;
-font-weight:bold;
-}
-
-.top{
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
-.balance{
-font-weight:bold;
-cursor:pointer;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:12px;
-margin-top:25px;
-}
-
-.box{
-background:rgba(0,0,0,.55);
-padding:18px;
-border-radius:14px;
-text-align:center;
-cursor:pointer;
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-<div class="app">
 
-<!-- البداية -->
-<div id="start" class="center">
-<h2>Gem Shop</h2>
-<button onclick="goLogin()">تسجيل دخول</button>
-<button onclick="goRegister()">إنشاء حساب</button>
+<div id="loginBox">
+  <h2>تسجيل الدخول</h2>
+  <input id="email" placeholder="البريد الإلكتروني">
+  <input id="password" type="password" placeholder="كلمة المرور">
+  <button onclick="login()">دخول</button>
+  <button onclick="register()">إنشاء حساب</button>
 </div>
 
-<!-- تسجيل الدخول -->
-<div id="login" class="hidden">
-<h3>تسجيل الدخول</h3>
-<input id="loginEmail" placeholder="البريد الإلكتروني">
-<input id="loginPass" type="password" placeholder="كلمة المرور">
-<button onclick="login()">دخول</button>
-<button onclick="back()">رجوع</button>
+<div id="app" style="display:none">
+  <header>
+    <span id="balance">$0</span>
+  </header>
+
+  <main>
+    <div class="card" onclick="order('Free Fire 100 Gems')">Free Fire</div>
+    <div class="card" onclick="order('PUBG 60 UC')">PUBG</div>
+    <div class="card" onclick="showOrders()">طلباتي</div>
+  </main>
+
+  <div id="orders"></div>
 </div>
 
-<!-- إنشاء حساب -->
-<div id="register" class="hidden">
-<h3>إنشاء حساب</h3>
-<input id="regEmail" placeholder="البريد الإلكتروني">
-<input id="regPass" type="password" placeholder="كلمة المرور">
-<button onclick="register()">إنشاء</button>
-<button onclick="back()">رجوع</button>
-</div>
-
-<!-- المتجر -->
-<div id="shop" class="hidden">
-<div class="top">
-<div class="balance" onclick="topup()">💰 $<span id="bal">0</span></div>
-<button onclick="logout()">خروج</button>
-</div>
-
-<div class="grid">
-<div class="box" onclick="freeFire()">🔥 Free Fire</div>
-<div class="box" onclick="pubg()">🎮 PUBG</div>
-<div class="box" onclick="apps()">📱 التطبيقات</div>
-<div class="box" onclick="orders()">📦 طلباتي</div>
-</div>
-</div>
-
-</div>
-
-<script>
-// ===== إعادة تشغيل الموقع (مسح كل الحسابات القديمة) =====
-localStorage.removeItem("users");
-
-// ===== تهيئة المستخدمين =====
-let users = {
-  "wled49645@gmail.com": {
-    pass: "wled12123456",
-    balance: 0,
-    orders: [],
-    admin: true
-  }
-};
-
-let current=null;
-
-// ===== تنقل =====
-function show(id){
-["start","login","register","shop"].forEach(x=>{
-document.getElementById(x).classList.add("hidden");
-});
-document.getElementById(id).classList.remove("hidden");
-}
-function goLogin(){show("login")}
-function goRegister(){show("register")}
-function back(){show("start")}
-
-// ===== إنشاء حساب =====
-function register(){
-let e=regEmail.value.trim();
-let p=regPass.value.trim();
-if(!e||!p)return alert("املأ جميع الحقول");
-if(users[e])return alert("الحساب موجود");
-
-users[e]={
-pass:p,
-balance:0,
-orders:[],
-admin:(e==="wled49645@gmail.com")
-};
-save();
-alert("تم إنشاء الحساب");
-show("login");
-}
-
-// ===== تسجيل الدخول =====
-function login(){
-let e=loginEmail.value.trim();
-let p=loginPass.value.trim();
-if(!users[e]||users[e].pass!==p)
-return alert("بيانات غير صحيحة");
-
-current=e;
-show("shop");
-update();
-}
-
-// ===== تحديث الرصيد =====
-function update(){
-bal.innerText=users[current].balance;
-}
-
-// ===== تسجيل خروج =====
-function logout(){
-current=null;
-location.reload();
-}
-
-// ===== الأقسام =====
-function freeFire(){
-let id=prompt("ادخل ID فري فاير");
-if(!id)return;
-users[current].orders.push("Free Fire – ID: "+id+" (قيد التنفيذ)");
-save();
-alert("سيتم الشحن خلال دقيقة إلى خمس دقائق");
-}
-
-function pubg(){
-let id=prompt("ادخل ID PUBG");
-if(!id)return;
-users[current].orders.push("PUBG – ID: "+id+" (قيد التنفيذ)");
-save();
-alert("سيتم الشحن خلال دقيقة إلى خمس دقائق");
-}
-
-function apps(){
-alert("شحن تطبيقات (وهمي)");
-}
-
-function orders(){
-let o=users[current].orders;
-if(o.length===0){
-alert("لا يوجد طلبات");
-return;
-}
-alert(o.join("\n"));
-}
-
-function topup(){
-alert(
-"الدفع عبر شام كاش فقط\n\n"+
-"29607b06505ee18f34a7fc5022404325\n\n"+
-"الحد الأدنى 5$\n"+
-"سيتم تعبئة الرصيد خلال دقيقة إلى خمس دقائق"
-);
-}
-
-// ===== حفظ =====
-function save(){
-localStorage.setItem("users",JSON.stringify(users));
-}
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
+body {
+  font-family: Arial;
+  background: radial-gradient(#ff6600,#000);
+  color: white;
+  margin: 0;
+  text-align: center;
+}
+
+#loginBox, #app {
+  max-width: 360px;
+  margin: auto;
+  padding: 20px;
+}
+
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+}
+
+header {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 18px;
+}
+
+.card {
+  background: #222;
+  padding: 20px;
+  margin: 10px;
+  border-radius: 10px;
+}
+let token = "";
+let userId = 0;
+
+function login() {
+  fetch("/api/login", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      email:email.value,
+      password:password.value
+    })
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    token = d.token;
+    document.getElementById("balance").innerText = "$"+d.balance;
+    loginBox.style.display="none";
+    app.style.display="block";
+  });
+}
+
+function register() {
+  fetch("/api/register", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      email:email.value,
+      password:password.value
+    })
+  }).then(()=>alert("تم إنشاء الحساب"));
+}
+
+function order(product) {
+  const gameId = prompt("أدخل ID");
+  fetch("/api/order", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ userId, product, gameId })
+  }).then(()=>alert("قيد التنفيذ من دقيقة إلى 5 دقائق"));
+}
+
+function showOrders() {
+  fetch("/api/orders/"+userId)
+    .then(r=>r.json())
+    .then(o=>{
+      orders.innerHTML = o.length
+        ? o.map(x=>`<p>${x.product} - ${x.status}</p>`).join("")
+        : "لا يوجد طلبات";
+    });
+}
+npm install
+npm start
