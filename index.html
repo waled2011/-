@@ -1,10 +1,8 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <title>Ahmed Shop</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
 body{
   margin:0;
@@ -14,169 +12,230 @@ body{
 }
 .hidden{display:none}
 header{
-  background:#000;
-  padding:12px;
   display:flex;
   justify-content:space-between;
   align-items:center;
+  padding:10px 15px;
+  background:#00000088;
 }
 .balance{
-  background:#111;
-  padding:6px 10px;
-  border-radius:8px;
+  background:#1abc9c;
+  padding:8px 14px;
+  border-radius:20px;
+  cursor:pointer;
+  font-weight:bold;
 }
-.container{padding:20px}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:15px;
-}
-.card{
-  background:#111;
-  padding:20px;
-  border-radius:12px;
-  text-align:center;
+.settings{
   cursor:pointer;
 }
-button,input,select{
-  width:100%;
-  padding:10px;
-  margin-top:8px;
-  border:none;
-  border-radius:6px;
+.container{
+  padding:20px;
 }
-button{background:#00c6ff;font-weight:bold}
+.center-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:15px;
+  margin-top:30px;
+}
+.card{
+  background:#ffffff12;
+  border-radius:15px;
+  padding:20px;
+  text-align:center;
+  cursor:pointer;
+  transition:.3s;
+}
+.card:hover{background:#1abc9c}
+input,select,button,textarea{
+  width:100%;
+  margin:8px 0;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+}
+button{
+  background:#1abc9c;
+  color:#000;
+  font-weight:bold;
+  cursor:pointer;
+}
+nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#000000cc;
+  display:flex;
+  justify-content:space-around;
+  padding:10px 0;
+}
+nav div{cursor:pointer}
+.order{
+  background:#ffffff12;
+  padding:10px;
+  border-radius:10px;
+  margin:8px 0;
+}
+.status-wait{color:yellow}
+.status-ok{color:#1abc9c}
+.status-no{color:red}
 </style>
 </head>
-
 <body>
 
 <header>
-  <div>Ahmed Shop</div>
-  <div class="balance" id="balanceBox">$0</div>
+  <div class="balance" onclick="showPage('topup')">💰 <span id="bal">0</span></div>
+  <div class="settings" onclick="showPage('settings')">⚙️</div>
 </header>
 
-<!-- LOGIN -->
-<div id="login" class="container">
-  <input id="le" placeholder="Email">
-  <input id="lp" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
-  <button onclick="show('register')">Create Account</button>
-</div>
+<div class="container">
 
-<!-- REGISTER -->
-<div id="register" class="container hidden">
-  <input id="re" placeholder="Email">
-  <input id="rp" type="password" placeholder="Password">
-  <select id="cur">
-    <option value="$">$ USD</option>
-    <option value="₺">TRY ₺</option>
-    <option value="£">SYP £</option>
+<!-- AUTH -->
+<div id="auth">
+  <h2>تسجيل حساب</h2>
+  <input id="name" placeholder="الاسم">
+  <input id="email" placeholder="البريد الإلكتروني">
+  <input id="pass" type="password" placeholder="كلمة المرور">
+  <select id="currency">
+    <option value="USD">دولار</option>
+    <option value="TRY">ليرة تركية</option>
+    <option value="SYP">ليرة سورية</option>
   </select>
-  <button onclick="register()">Register</button>
+  <button onclick="register()">إنشاء حساب</button>
+  <hr>
+  <h3>تسجيل دخول</h3>
+  <input id="l_email" placeholder="البريد">
+  <input id="l_pass" type="password" placeholder="كلمة المرور">
+  <button onclick="login()">دخول</button>
 </div>
 
 <!-- HOME -->
-<div id="home" class="container hidden">
-  <div class="grid">
-    <div class="card" onclick="openGames()">🎮 Games</div>
-    <div class="card" onclick="openApps()">📱 Apps</div>
-    <div class="card" onclick="openNumbers()">📞 Numbers</div>
-    <div class="card" onclick="openSettings()">⚙️ Settings</div>
+<div id="home" class="hidden">
+  <div class="center-grid">
+    <div class="card" onclick="showPage('games')">🎮 الألعاب</div>
+    <div class="card" onclick="showPage('apps')">📱 التطبيقات</div>
+    <div class="card" onclick="showPage('numbers')">📞 الأرقام</div>
+    <div class="card" onclick="showPage('topup')">💳 تعبئة الرصيد</div>
   </div>
 </div>
 
 <!-- GAMES -->
-<div id="games" class="container hidden">
-  <div class="card" onclick="openFF()">Free Fire</div>
-  <div class="card" onclick="openPUBG()">PUBG Mobile</div>
-  <button onclick="back()">Back</button>
+<div id="games" class="hidden">
+  <h2>الألعاب</h2>
+  <div class="card" onclick="showPage('ff')">🔥 Free Fire</div>
+  <div class="card" onclick="showPage('pubg')">🎯 PUBG</div>
 </div>
 
-<!-- FREE FIRE -->
-<div id="ff" class="container hidden">
-  <div class="card">100 💎 = 0.5$</div>
-  <div class="card">200 💎 = 1$</div>
-  <div class="card">300 💎 = 1.5$</div>
-  <div class="card">400 💎 = 2$</div>
-  <button onclick="back()">Back</button>
+<div id="ff" class="hidden">
+  <h3>Free Fire</h3>
+  <input placeholder="ID اللاعب">
+  <select>
+    <option>100 جوهرة - 0.5$</option>
+    <option>200 جوهرة - 1$</option>
+    <option>300 جوهرة - 1.5$</option>
+    <option>400 جوهرة - 2$</option>
+  </select>
+  <textarea placeholder="ملاحظة"></textarea>
+  <button onclick="order()">شحن</button>
 </div>
 
-<!-- PUBG -->
-<div id="pubg" class="container hidden">
-  <div class="card">60 UC = 0.5$</div>
-  <div class="card">120 UC = 1$</div>
-  <div class="card">300 UC = 2$</div>
-  <button onclick="back()">Back</button>
+<div id="pubg" class="hidden">
+  <h3>PUBG</h3>
+  <input placeholder="ID اللاعب">
+  <select>
+    <option>60 UC - 0.5$</option>
+    <option>120 UC - 1$</option>
+    <option>300 UC - 2$</option>
+  </select>
+  <button onclick="order()">شحن</button>
 </div>
 
 <!-- APPS -->
-<div id="apps" class="container hidden">
-  <div class="card">Shahid</div>
-  <button onclick="back()">Back</button>
+<div id="apps" class="hidden">
+  <h3>التطبيقات</h3>
+  <div class="card">شاهد</div>
 </div>
 
 <!-- NUMBERS -->
-<div id="numbers" class="container hidden">
+<div id="numbers" class="hidden">
+  <h3>الأرقام</h3>
   <div class="card">WhatsApp</div>
   <div class="card">Telegram</div>
-  <button onclick="back()">Back</button>
+</div>
+
+<!-- TOPUP -->
+<div id="topup" class="hidden">
+  <h3>تعبئة الرصيد - Sham Cash</h3>
+  <p>الكود: <b>29607b06505ee18f34a7fc5022404325</b></p>
+  <input id="amount" type="number" placeholder="المبلغ (أقل شيء 5$)">
+  <input type="file">
+  <button onclick="topup()">إرسال</button>
+</div>
+
+<!-- ORDERS -->
+<div id="orders" class="hidden">
+  <h3>طلباتي</h3>
+  <div id="orderList"></div>
 </div>
 
 <!-- SETTINGS -->
-<div id="settings" class="container hidden">
-  <select onchange="changeLang(this.value)">
-    <option value="ar">العربية</option>
-    <option value="en">English</option>
-  </select>
-  <button onclick="logout()">Logout</button>
+<div id="settings" class="hidden">
+  <h3>الإعدادات</h3>
+  <button onclick="changeLang()">تغيير اللغة</button>
+  <input id="newpass" type="password" placeholder="كلمة مرور جديدة">
+  <button onclick="changePass()">تغيير كلمة المرور</button>
+  <p>الدعم: +9635022404</p>
 </div>
 
+</div>
+
+<nav>
+  <div onclick="showPage('home')">🏠</div>
+  <div onclick="showPage('orders')">📦</div>
+  <div onclick="logout()">🚪</div>
+</nav>
+
 <script>
-let user=null, lang="ar";
-
-function show(id){
-  document.querySelectorAll(".container").forEach(d=>d.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
+let user=null,orders=[];
+function showPage(p){
+ document.querySelectorAll('.container > div').forEach(d=>d.classList.add('hidden'));
+ document.getElementById(p).classList.remove('hidden');
 }
-
 function register(){
-  localStorage.setItem("user",JSON.stringify({
-    email:re.value,
-    pass:rp.value,
-    cur:cur.value,
-    bal:0
-  }));
-  alert("Account created");
-  show("login");
+ if(!name.value||!email.value||!pass.value)return alert("املأ جميع الحقول");
+ localStorage.user=JSON.stringify({email:email.value,pass:pass.value,balance:0});
+ alert("تم إنشاء الحساب");
 }
-
 function login(){
-  const u=JSON.parse(localStorage.getItem("user"));
-  if(!u||u.email!==le.value||u.pass!==lp.value){
-    alert("Login error");return;
-  }
-  user=u;
-  updateBalance();
-  show("home");
+ let u=JSON.parse(localStorage.user||'null');
+ if(!u||l_email.value!=u.email||l_pass.value!=u.pass)return alert("خطأ");
+ user=u; bal.innerText=u.balance; showPage('home');
 }
-
-function updateBalance(){
-  balanceBox.innerText=user.cur+user.bal;
+function logout(){location.reload()}
+function order(){
+ orders.push({s:"قيد التنفيذ"});
+ renderOrders();
+ setTimeout(()=>{orders[orders.length-1].s="مرفوض";renderOrders()},5000);
+ alert("قيد الشحن 1-5 دقائق");
 }
-
-function logout(){user=null;show("login")}
-function back(){show("home")}
-function openGames(){show("games")}
-function openFF(){show("ff")}
-function openPUBG(){show("pubg")}
-function openApps(){show("apps")}
-function openNumbers(){show("numbers")}
-function openSettings(){show("settings")}
-
-function changeLang(l){
-  lang=l;
-  alert(l==="ar"?"تم تغيير اللغة":"Language changed");
+function renderOrders(){
+ orderList.innerHTML='';
+ orders.forEach(o=>{
+ orderList.innerHTML+=`<div class="order status-wait">${o.s}</div>`;
+ });
+}
+function topup(){
+ if(amount.value<5)return alert("أقل مبلغ 5$");
+ alert("سيتم تعبئة حسابك خلال 1-5 دقائق");
+}
+function changeLang(){
+ document.dir=document.dir=="rtl"?"ltr":"rtl";
+}
+function changePass(){
+ if(!newpass.value)return alert("فارغ");
+ let u=JSON.parse(localStorage.user);u.pass=newpass.value;
+ localStorage.user=JSON.stringify(u);
+ alert("تم التغيير");
 }
 </script>
 
