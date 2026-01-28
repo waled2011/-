@@ -2,164 +2,188 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>نظام الرصيد</title>
+<title>لوحة الرصيد</title>
+
 <style>
+* {
+  box-sizing: border-box;
+  font-family: Tahoma;
+}
+
 body {
-  font-family: Arial;
-  background:#111;
-  color:#fff;
-  padding:20px;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
 }
+
+.app {
+  width: 360px;
+  background: #111;
+  border-radius: 16px;
+  padding: 15px;
+  box-shadow: 0 0 25px rgba(0,0,0,.6);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.section {
+  background: #1c1c1c;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
 input, button {
-  padding:8px;
-  margin:5px 0;
-  width:100%;
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
 }
-.box {
-  border:1px solid #333;
-  padding:15px;
-  margin-bottom:20px;
-  border-radius:8px;
+
+input {
+  background: #333;
+  color: #fff;
 }
+
 button {
-  background:#00c853;
-  border:none;
-  color:#000;
-  cursor:pointer;
+  background: #00e676;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
 }
+
 button.admin {
-  background:#ffab00;
+  background: #ff9100;
+}
+
+.result {
+  font-size: 13px;
+  margin-top: 5px;
+  color: #a5f3fc;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🔐 إنشاء حساب</h2>
-<div class="box">
-  <input id="username" placeholder="اسم المستخدم">
-  <button onclick="createAccount()">إنشاء حساب</button>
-  <p id="accountInfo"></p>
+<div class="app">
+
+<h2>💳 نظام الرصيد</h2>
+
+<div class="section">
+<input id="userName" placeholder="اسم المستخدم">
+<button onclick="createUser()">إنشاء حساب</button>
+<div id="userInfo" class="result"></div>
 </div>
 
-<h2>💰 الرصيد</h2>
-<div class="box">
-  <input id="accountCode" placeholder="كود الحساب">
-  <button onclick="checkBalance()">عرض الرصيد</button>
-  <p id="balanceInfo"></p>
+<div class="section">
+<input id="codeInput" placeholder="كود الحساب">
+<button onclick="showBalance()">عرض الرصيد</button>
+<div id="balanceInfo" class="result"></div>
 </div>
 
-<h2>🛒 شراء</h2>
-<div class="box">
-  <button onclick="buy('ff')">100 جوهرة فري فاير = 1$</button>
-  <button onclick="buy('pubg')">60 UC ببجي = 1$</button>
-  <p id="buyInfo"></p>
+<div class="section">
+<button onclick="buyFF()">🔥 100 جوهرة فري فاير = 1$</button>
+<button onclick="buyPUBG()">🎯 60 UC ببجي = 1$</button>
+<div id="buyInfo" class="result"></div>
 </div>
 
-<h2>🧑‍💼 شحن (للمسؤول)</h2>
-<div class="box">
-  <input id="adminCode" placeholder="كود الحساب">
-  <input id="amount" placeholder="قيمة الشحن بالدولار">
-  <button class="admin" onclick="charge()">شحن</button>
-  <p id="adminInfo"></p>
+<div class="section">
+<input id="adminCode" placeholder="كود الحساب">
+<input id="adminAmount" placeholder="قيمة الشحن">
+<button class="admin" onclick="adminCharge()">شحن (مسؤول)</button>
+<div id="adminInfo" class="result"></div>
 </div>
 
-<h2>📡 API TikTok</h2>
-<div class="box">
-  <button onclick="loadServices()">جلب الخدمات</button>
-  <button onclick="orderTikTok()">طلب متابعين</button>
-  <button onclick="checkOrder()">حالة الطلب</button>
-  <pre id="apiResult"></pre>
+<div class="section">
+<button onclick="getServices()">📡 جلب خدمات TikTok</button>
+<button onclick="orderTikTok()">🛒 طلب متابعين</button>
+<button onclick="checkStatus()">📊 حالة الطلب</button>
+<pre id="apiBox" class="result"></pre>
+</div>
+
 </div>
 
 <script>
-// ================== قاعدة بيانات وهمية ==================
+// ================== قاعدة بيانات مؤقتة ==================
 const users = {};
 
-// ================== إنشاء كود حساب ==================
-function generateCode(name) {
+// ================== إنشاء كود ==================
+function makeCode(name){
   return name.toUpperCase() + Math.floor(1000 + Math.random()*9000);
 }
 
-// ================== إنشاء حساب ==================
-function createAccount() {
-  const name = document.getElementById("username").value;
-  if (!name) return;
-  const code = generateCode(name);
+// ================== إنشاء مستخدم ==================
+function createUser(){
+  const name = userName.value.trim();
+  if(!name) return;
+  const code = makeCode(name);
   users[code] = { balance: 0 };
-  document.getElementById("accountInfo").innerText =
-    `تم إنشاء الحساب\nكودك: ${code}\nالرصيد: 0$`;
+  userInfo.innerText = `تم إنشاء الحساب\nكودك: ${code}\nالرصيد: 0$`;
 }
 
 // ================== عرض الرصيد ==================
-function checkBalance() {
-  const code = document.getElementById("accountCode").value;
-  if (!users[code]) {
-    document.getElementById("balanceInfo").innerText = "الحساب غير موجود";
-    return;
-  }
-  document.getElementById("balanceInfo").innerText =
-    `رصيدك: ${users[code].balance}$`;
+function showBalance(){
+  const code = codeInput.value.trim();
+  if(!users[code]) return balanceInfo.innerText = "❌ الحساب غير موجود";
+  balanceInfo.innerText = `رصيدك الحالي: ${users[code].balance}$`;
 }
-
-// ================== أسعار ==================
-const prices = {
-  ff: 1,
-  pubg: 1
-};
 
 // ================== شراء ==================
-function buy(type) {
-  const code = document.getElementById("accountCode").value;
-  if (!users[code]) return;
-  const price = prices[type];
-  if (users[code].balance < price) {
-    document.getElementById("buyInfo").innerText = "رصيد غير كافٍ";
-    return;
-  }
+function buy(price){
+  const code = codeInput.value.trim();
+  if(!users[code]) return;
+  if(users[code].balance < price)
+    return buyInfo.innerText = "❌ الرصيد غير كافٍ";
   users[code].balance -= price;
-  document.getElementById("buyInfo").innerText =
-    `تم الشراء بنجاح – الرصيد المتبقي: ${users[code].balance}$`;
+  buyInfo.innerText = `✅ تم الشراء – الرصيد: ${users[code].balance}$`;
 }
 
-// ================== شحن رصيد (مسؤول) ==================
-function charge() {
-  const code = document.getElementById("adminCode").value;
-  const amount = Number(document.getElementById("amount").value);
-  if (!users[code]) return;
+function buyFF(){ buy(1); }
+function buyPUBG(){ buy(1); }
+
+// ================== شحن مسؤول ==================
+function adminCharge(){
+  const code = adminCode.value.trim();
+  const amount = Number(adminAmount.value);
+  if(!users[code]) return;
   users[code].balance += amount;
-  document.getElementById("adminInfo").innerText =
-    `تم الشحن – الرصيد الجديد: ${users[code].balance}$`;
+  adminInfo.innerText = `✔ تم الشحن – الرصيد: ${users[code].balance}$`;
 }
 
 // ================== API ==================
-function loadServices() {
+function getServices(){
   fetch("http://api.denji-sms.xyz/api/v1/social/available")
-    .then(r => r.json())
-    .then(d => document.getElementById("apiResult").innerText =
-      JSON.stringify(d, null, 2));
+  .then(r=>r.json())
+  .then(d=>apiBox.innerText = JSON.stringify(d,null,2));
 }
 
-function orderTikTok() {
-  fetch("http://api.denji-sms.xyz/api/v1/social/request", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      api_code: "tk_fy",
-      qty: 1000,
-      link: "https://www.tiktok.com/@username/video/12345"
+function orderTikTok(){
+  fetch("http://api.denji-sms.xyz/api/v1/social/request",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      api_code:"tk_fy",
+      qty:1000,
+      link:"https://www.tiktok.com/@username/video/12345"
     })
   })
-  .then(r => r.json())
-  .then(d => document.getElementById("apiResult").innerText =
-    JSON.stringify(d, null, 2));
+  .then(r=>r.json())
+  .then(d=>apiBox.innerText = JSON.stringify(d,null,2));
 }
 
-function checkOrder() {
+function checkStatus(){
   fetch("http://api.denji-sms.xyz/api/v1/social/status/5678")
-    .then(r => r.json())
-    .then(d => document.getElementById("apiResult").innerText =
-      JSON.stringify(d, null, 2));
+  .then(r=>r.json())
+  .then(d=>apiBox.innerText = JSON.stringify(d,null,2));
 }
 </script>
 
