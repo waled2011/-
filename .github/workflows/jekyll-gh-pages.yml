@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>WALED SHOP</title>
+
+<style>
+body{
+  margin:0;
+  font-family: Tahoma, Arial;
+  background:linear-gradient(135deg,#020617,#020617,#0f172a);
+  color:white;
+  text-align:center;
+}
+header{
+  padding:20px;
+  font-size:26px;
+  font-weight:bold;
+  background:#020617;
+  letter-spacing:2px;
+}
+nav{
+  margin:10px;
+}
+nav button{
+  margin:5px;
+  padding:10px 18px;
+  border:none;
+  border-radius:12px;
+  background:#2563eb;
+  color:white;
+  font-size:15px;
+  cursor:pointer;
+}
+section{
+  display:none;
+  padding:20px;
+}
+section.active{
+  display:block;
+}
+
+/* تصميم المربعات */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:15px;
+  max-width:900px;
+  margin:auto;
+}
+.card{
+  background:#020617;
+  padding:20px;
+  border-radius:16px;
+  box-shadow:0 0 15px rgba(0,0,0,0.4);
+}
+.card h3{
+  margin-top:0;
+}
+.buy{
+  margin-top:10px;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:#22c55e;
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
+  width:100%;
+}
+input{
+  width:95%;
+  padding:10px;
+  margin:8px 0;
+  border:none;
+  border-radius:8px;
+}
+</style>
+</head>
+
+<body>
+
+<header>WALED SHOP</header>
+
+<nav>
+  <button onclick="showPage('home')">الرئيسية</button>
+  <button onclick="showPage('apps')">التطبيقات</button>
+  <button onclick="showPage('games')">الألعاب</button>
+  <button onclick="showPage('numbers')">الأرقام</button>
+  <button onclick="showPage('pay')">الدفع</button>
+</nav>
+
+<!-- الصفحة الرئيسية -->
+<section id="home" class="active">
+  <h2>مرحبًا بك 👋</h2>
+  <p>متجر وليد لبيع التطبيقات، الألعاب، والأرقام</p>
+</section>
+
+<!-- قسم التطبيقات -->
+<section id="apps">
+  <h2>📱 التطبيقات</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Spotify Premium</h3>
+      <p>اشتراك شهر</p>
+      <button class="buy" onclick="sendOrder('Spotify Premium','5$')">شراء</button>
+    </div>
+
+    <div class="card">
+      <h3>Netflix</h3>
+      <p>اشتراك شهر</p>
+      <button class="buy" onclick="sendOrder('Netflix','7$')">شراء</button>
+    </div>
+
+    <div class="card">
+      <h3>YouTube Premium</h3>
+      <p>اشتراك شهر</p>
+      <button class="buy" onclick="sendOrder('YouTube Premium','4$')">شراء</button>
+    </div>
+  </div>
+</section>
+
+<!-- قسم الألعاب -->
+<section id="games">
+  <h2>🎮 الألعاب</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Free Fire</h3>
+      <p>شحن جواهر</p>
+      <button class="buy" onclick="sendOrder('Free Fire Diamonds','حسب الطلب')">
+        شراء
+      </button>
+    </div>
+
+    <div class="card">
+      <h3>PUBG Mobile</h3>
+      <p>شحن شدات</p>
+      <button class="buy" onclick="sendOrder('PUBG Mobile UC','حسب الطلب')">
+        شراء
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- قسم الأرقام -->
+<section id="numbers">
+  <h2>📞 الأرقام</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>رقم واتساب</h3>
+      <p>جاهز للتفعيل</p>
+      <button class="buy" onclick="sendOrder('رقم واتساب','3$')">شراء</button>
+    </div>
+
+    <div class="card">
+      <h3>رقم تيليجرام</h3>
+      <p>جاهز للتفعيل</p>
+      <button class="buy" onclick="sendOrder('رقم تيليجرام','3$')">شراء</button>
+    </div>
+  </div>
+</section>
+
+<!-- قسم الدفع -->
+<section id="pay">
+  <h2>💰 الدفع</h2>
+  <p>سيتم إرسال بيانات الدفع عبر واتساب</p>
+
+  <div class="card" style="max-width:400px;margin:auto;">
+    <input id="name" placeholder="اسمك">
+    <input id="amount" placeholder="المبلغ">
+    <input id="code" placeholder="كود التحويل">
+    <button class="buy" onclick="sendPayment()">إرسال بيانات الدفع</button>
+  </div>
+</section>
+
+<script>
+function showPage(id){
+  document.querySelectorAll('section').forEach(s=>{
+    s.classList.remove('active');
+  });
+  document.getElementById(id).classList.add('active');
+}
+
+const phone = "9647843466671";
+
+function sendOrder(product, price){
+  const msg =
+    "🛒 طلب جديد\n" +
+    "المنتج: " + product + "\n" +
+    "السعر: " + price;
+
+  window.open(
+    "https://wa.me/" + phone + "?text=" + encodeURIComponent(msg),
+    "_blank"
+  );
+}
+
+function sendPayment(){
+  const name = document.getElementById('name').value;
+  const amount = document.getElementById('amount').value;
+  const code = document.getElementById('code').value;
+
+  const msg =
+    "💰 بيانات دفع\n" +
+    "الاسم: " + name + "\n" +
+    "المبلغ: " + amount + "\n" +
+    "كود التحويل: " + code;
+
+  window.open(
+    "https://wa.me/" + phone + "?text=" + encodeURIComponent(msg),
+    "_blank"
+  );
+}
+</script>
+
+</body>
+</html>
