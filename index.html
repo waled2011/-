@@ -8,146 +8,143 @@
 body{margin:0;font-family:tahoma;background:#0f172a;color:#fff}
 header{background:#020617;padding:15px;display:flex;justify-content:space-between;align-items:center}
 button{background:#2563eb;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer}
+input,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:none}
 .hidden{display:none}
-section{padding:15px}
-.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px}
-.card{background:#020617;padding:12px;border-radius:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px;padding:15px}
+.card{background:#020617;padding:12px;border-radius:12px;text-align:center}
 .card img{width:100%;border-radius:10px}
-.delete{background:#dc2626;margin-top:6px}
-.badge{background:#16a34a;padding:3px 7px;border-radius:6px;font-size:12px}
-input,select,textarea{width:100%;margin:5px 0;padding:7px;border-radius:6px;border:none}
+.nav{display:flex;gap:10px;padding:10px}
+.nav button{flex:1}
 </style>
 </head>
+
 <body>
 
 <header>
-  <div>
-    <b>BEST STORE</b><br>
-    <small>رصيدك: <span id="balance">0</span></small>
-  </div>
-  <div>
-    <span id="userEmail"></span>
-    <button id="loginBtn">تسجيل الدخول Google</button>
-    <button id="logoutBtn" class="hidden">خروج</button>
+  <b>BEST STORE</b>
+  <div id="userBox">
+    <button onclick="openAuth()">تسجيل / دخول</button>
   </div>
 </header>
 
-<section id="adminPanel" class="hidden">
-  <h3>إضافة منتج</h3>
-  <input id="pName" placeholder="اسم المنتج">
-  <input id="pPrice" placeholder="السعر">
-  <select id="pCat">
-    <option>تطبيقات</option>
-    <option>أشياء</option>
+<!-- اختيار الأقسام -->
+<div class="nav">
+  <button onclick="setSection('apps')">التطبيقات</button>
+  <button onclick="setSection('games')">الألعاب</button>
+  <button onclick="setSection('charge')">شحن الألعاب</button>
+</div>
+
+<!-- تسجيل -->
+<div id="authBox" class="card hidden">
+  <h3>إنشاء حساب / دخول</h3>
+  <input id="name" placeholder="الاسم">
+  <input id="email" placeholder="البريد الإلكتروني">
+  <input id="password" type="password" placeholder="كلمة السر">
+  <select id="currency">
+    <option value="SYP">ليرة سورية</option>
+    <option value="TRY">ليرة تركية</option>
+    <option value="USD">دولار أمريكي</option>
   </select>
-  <textarea id="pDesc" placeholder="الوصف"></textarea>
-  <input id="pQty" placeholder="الرصيد / الكمية">
+  <button onclick="register()">إنشاء حساب</button>
+  <button onclick="login()">تسجيل الدخول</button>
+</div>
+
+<!-- لوحة الأدمن -->
+<div id="adminPanel" class="card hidden">
+  <h3>لوحة الأدمن</h3>
+  <input id="pName" placeholder="اسم المنتج">
+  <select id="pSection">
+    <option value="apps">تطبيقات</option>
+    <option value="games">ألعاب</option>
+    <option value="charge">شحن ألعاب</option>
+  </select>
+  <input id="pPrice" placeholder="السعر">
   <input type="file" id="pImg">
-  <button onclick="addProduct()">إضافة المنتج</button>
-</section>
+  <button onclick="addProduct()">إضافة</button>
+</div>
 
-<section class="products" id="products"></section>
-
-<section class="card">
-  <h3>تعبئة الرصيد عبر شام كاش</h3>
-  <p>الحساب: <b>29607b06505ee18f34a7fc5022404325</b></p>
-  <input id="chargeAmount" placeholder="المبلغ">
-  <input type="file" id="chargeImg">
-  <button onclick="sendCharge()">إرسال طلب التعبئة</button>
-</section>
+<!-- المنتجات -->
+<div id="products" class="grid"></div>
 
 <script type="module">
-/* 🔥 ضع بيانات Firebase هنا */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
-const firebaseConfig = {
-  apiKey: "PUT_API_KEY",
-  authDomain: "PUT_AUTH_DOMAIN",
-  projectId: "PUT_PROJECT_ID",
-  storageBucket: "PUT_STORAGE_BUCKET",
-  messagingSenderId: "PUT_SENDER_ID",
-  appId: "PUT_APP_ID"
+const firebaseConfig={
+  apiKey:"PUT_API_KEY",
+  authDomain:"PUT_AUTH_DOMAIN",
+  projectId:"PUT_PROJECT_ID",
+  storageBucket:"PUT_STORAGE_BUCKET",
+  messagingSenderId:"PUT_SENDER_ID",
+  appId:"PUT_APP_ID"
 };
 
-const ADMIN = "wled49645@gmail.com";
+const ADMIN="wled49645@gmail.com";
+let currentSection="apps";
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-const provider = new GoogleAuthProvider();
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const storage=getStorage(app);
 
-loginBtn.onclick = () => signInWithPopup(auth, provider);
-logoutBtn.onclick = () => signOut(auth);
+window.openAuth=()=>authBox.classList.toggle("hidden");
+window.setSection=s=>{currentSection=s;loadProducts();};
 
-onAuthStateChanged(auth, async user => {
-  if(!user) return;
-  userEmail.innerText = user.email;
-  loginBtn.classList.add("hidden");
-  logoutBtn.classList.remove("hidden");
+window.register=async()=>{
+  const user=await createUserWithEmailAndPassword(auth,email.value,password.value);
+  await sendEmailVerification(user.user);
+  alert("تم إرسال رسالة تحقق إلى بريدك");
+};
 
-  const userRef = doc(db,"users",user.uid);
-  const snap = await getDoc(userRef);
-  if(!snap.exists()) await setDoc(userRef,{balance:0});
-  balance.innerText = (await getDoc(userRef)).data().balance;
+window.login=async()=>{
+  const u=await signInWithEmailAndPassword(auth,email.value,password.value);
+  if(!u.user.emailVerified){
+    alert("يرجى تفعيل الحساب من الإيميل");
+    return;
+  }
+};
 
-  if(user.email === ADMIN) adminPanel.classList.remove("hidden");
-  loadProducts();
+onAuthStateChanged(auth,u=>{
+  if(!u)return;
+  userBox.innerText=u.email;
+  authBox.classList.add("hidden");
+  if(u.email===ADMIN) adminPanel.classList.remove("hidden");
 });
 
-async function addProduct(){
-  const file = pImg.files[0];
-  const imgRef = ref(storage,"products/"+Date.now());
+window.addProduct=async()=>{
+  const file=pImg.files[0];
+  const imgRef=ref(storage,"products/"+Date.now());
   await uploadBytes(imgRef,file);
-  const url = await getDownloadURL(imgRef);
+  const url=await getDownloadURL(imgRef);
 
   await addDoc(collection(db,"products"),{
-    name:pName.value,price:pPrice.value,cat:pCat.value,
-    desc:pDesc.value,qty:pQty.value,img:url
+    name:pName.value,
+    section:pSection.value,
+    price:pPrice.value,
+    img:url
   });
   loadProducts();
-}
+};
 
 async function loadProducts(){
   products.innerHTML="";
-  const q = await getDocs(collection(db,"products"));
+  const q=await getDocs(collection(db,"products"));
   q.forEach(d=>{
     const p=d.data();
-    products.innerHTML+=`
-    <div class="card">
-      <img src="${p.img}">
-      <h4>${p.name}</h4>
-      <span class="badge">${p.cat}</span>
-      <p>${p.desc}</p>
-      <p>الرصيد: ${p.qty}</p>
-      <b>${p.price}</b>
-      ${auth.currentUser?.email===ADMIN?
-      `<button class="delete" onclick="deleteProduct('${d.id}')">حذف</button>`:""}
-    </div>`;
+    if(p.section===currentSection){
+      products.innerHTML+=`
+      <div class="card">
+        <img src="${p.img}">
+        <h4>${p.name}</h4>
+        <b>${p.price}</b>
+      </div>`;
+    }
   });
 }
 
-window.deleteProduct = async id =>{
-  await deleteDoc(doc(db,"products",id));
-  loadProducts();
-};
-
-async function sendCharge(){
-  const file=chargeImg.files[0];
-  const refImg=ref(storage,"charges/"+Date.now());
-  await uploadBytes(refImg,file);
-  const url=await getDownloadURL(refImg);
-
-  await addDoc(collection(db,"charges"),{
-    uid:auth.currentUser.uid,
-    amount:chargeAmount.value,
-    img:url
-  });
-  alert("تم إرسال طلب التعبئة");
-}
+loadProducts();
 </script>
 
 </body>
