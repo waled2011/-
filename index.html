@@ -2,213 +2,166 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>WALED SHOP</title>
-
+<title>نظام الرصيد</title>
 <style>
-body{
-  margin:0;
-  font-family:"Segoe UI", Tahoma;
-  background:linear-gradient(160deg,#020617,#0f172a);
-  color:white;
-}
-header{
-  padding:25px;
-  background:#020617;
-  text-align:center;
-  font-size:28px;
-  font-weight:bold;
-  letter-spacing:2px;
-}
-nav{
-  text-align:center;
-  padding:10px;
-}
-nav button{
-  margin:6px;
-  padding:12px 20px;
-  border:none;
-  border-radius:14px;
-  background:#2563eb;
-  color:white;
-  font-size:15px;
-  cursor:pointer;
-}
-section{
-  display:none;
-  padding:25px;
-}
-section.active{display:block}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:20px;
-  max-width:1100px;
-  margin:auto;
-}
-.card{
-  background:#020617;
+body {
+  font-family: Arial;
+  background:#111;
+  color:#fff;
   padding:20px;
-  border-radius:18px;
-  box-shadow:0 10px 25px rgba(0,0,0,.5);
-  text-align:center;
 }
-.card h3{
-  margin-top:0;
-}
-.price{
-  color:#22c55e;
-  font-weight:bold;
-}
-.buy{
-  margin-top:15px;
-  padding:12px;
+input, button {
+  padding:8px;
+  margin:5px 0;
   width:100%;
+}
+.box {
+  border:1px solid #333;
+  padding:15px;
+  margin-bottom:20px;
+  border-radius:8px;
+}
+button {
+  background:#00c853;
   border:none;
-  border-radius:12px;
-  background:#22c55e;
-  font-weight:bold;
+  color:#000;
   cursor:pointer;
 }
-.footer{
-  text-align:center;
-  padding:20px;
-  opacity:0.6;
-}
-.balance-box{
-  margin-top:15px;
-  padding:10px;
-  background:#020617;
-  border-radius:10px;
-  font-weight:bold;
+button.admin {
+  background:#ffab00;
 }
 </style>
 </head>
 
 <body>
 
-<header>WALED SHOP</header>
+<h2>🔐 إنشاء حساب</h2>
+<div class="box">
+  <input id="username" placeholder="اسم المستخدم">
+  <button onclick="createAccount()">إنشاء حساب</button>
+  <p id="accountInfo"></p>
+</div>
 
-<nav>
-  <button onclick="openPage('home')">الرئيسية</button>
-  <button onclick="openPage('apps')">التطبيقات</button>
-  <button onclick="openPage('games')">الألعاب</button>
-  <button onclick="openPage('numbers')">الأرقام</button>
-</nav>
+<h2>💰 الرصيد</h2>
+<div class="box">
+  <input id="accountCode" placeholder="كود الحساب">
+  <button onclick="checkBalance()">عرض الرصيد</button>
+  <p id="balanceInfo"></p>
+</div>
 
-<!-- الرئيسية -->
-<section id="home" class="active">
-  <h2>👋 مرحبًا بك</h2>
-  <p>متجر وليد لبيع التطبيقات، الألعاب، والأرقام الجاهزة</p>
+<h2>🛒 شراء</h2>
+<div class="box">
+  <button onclick="buy('ff')">100 جوهرة فري فاير = 1$</button>
+  <button onclick="buy('pubg')">60 UC ببجي = 1$</button>
+  <p id="buyInfo"></p>
+</div>
 
-  <!-- عرض الرصيد من الكود -->
-  <div class="balance-box">
-    رصيد الحساب: <span id="balance">---</span>
-  </div>
-</section>
+<h2>🧑‍💼 شحن (للمسؤول)</h2>
+<div class="box">
+  <input id="adminCode" placeholder="كود الحساب">
+  <input id="amount" placeholder="قيمة الشحن بالدولار">
+  <button class="admin" onclick="charge()">شحن</button>
+  <p id="adminInfo"></p>
+</div>
 
-<!-- التطبيقات -->
-<section id="apps">
-  <h2>📱 التطبيقات</h2>
-  <div class="grid">
-    <div class="card">
-      <h3>Netflix</h3>
-      <p class="price">7$</p>
-      <button class="buy" onclick="sendOrder('Netflix','7$')">شراء</button>
-    </div>
-    <div class="card">
-      <h3>Spotify Premium</h3>
-      <p class="price">5$</p>
-      <button class="buy" onclick="sendOrder('Spotify Premium','5$')">شراء</button>
-    </div>
-    <div class="card">
-      <h3>YouTube Premium</h3>
-      <p class="price">4$</p>
-      <button class="buy" onclick="sendOrder('YouTube Premium','4$')">شراء</button>
-    </div>
-  </div>
-</section>
-
-<!-- الألعاب -->
-<section id="games">
-  <h2>🎮 الألعاب</h2>
-  <div class="grid">
-    <div class="card">
-      <h3>Free Fire</h3>
-      <p>شحن جواهر</p>
-      <button class="buy" onclick="sendOrder('Free Fire Diamonds','حسب الطلب')">
-        شراء
-      </button>
-    </div>
-    <div class="card">
-      <h3>PUBG Mobile</h3>
-      <p>شحن شدات</p>
-      <button class="buy" onclick="sendOrder('PUBG Mobile UC','حسب الطلب')">
-        شراء
-      </button>
-    </div>
-  </div>
-</section>
-
-<!-- الأرقام -->
-<section id="numbers">
-  <h2>📞 الأرقام</h2>
-  <div class="grid">
-    <div class="card">
-      <h3>رقم واتساب</h3>
-      <p class="price">3$</p>
-      <button class="buy" onclick="sendOrder('رقم واتساب','3$')">شراء</button>
-    </div>
-    <div class="card">
-      <h3>رقم تيليجرام</h3>
-      <p class="price">3$</p>
-      <button class="buy" onclick="sendOrder('رقم تيليجرام','3$')">شراء</button>
-    </div>
-  </div>
-</section>
+<h2>📡 API TikTok</h2>
+<div class="box">
+  <button onclick="loadServices()">جلب الخدمات</button>
+  <button onclick="orderTikTok()">طلب متابعين</button>
+  <button onclick="checkOrder()">حالة الطلب</button>
+  <pre id="apiResult"></pre>
+</div>
 
 <script>
-/* ===== الإعدادات العامة ===== */
-const phone = "9647843466671";
+// ================== قاعدة بيانات وهمية ==================
+const users = {};
 
-/* ===== التنقل ===== */
-function openPage(id){
-  document.querySelectorAll('section').forEach(s=>{
-    s.classList.remove('active');
-  });
-  document.getElementById(id).classList.add('active');
+// ================== إنشاء كود حساب ==================
+function generateCode(name) {
+  return name.toUpperCase() + Math.floor(1000 + Math.random()*9000);
 }
 
-/* ===== إرسال الطلب واتساب ===== */
-function sendOrder(product, price){
-  const msg =
-    "🛒 طلب جديد\n" +
-    "المنتج: " + product + "\n" +
-    "السعر: " + price;
-
-  window.open(
-    "https://wa.me/" + phone + "?text=" + encodeURIComponent(msg),
-    "_blank"
-  );
+// ================== إنشاء حساب ==================
+function createAccount() {
+  const name = document.getElementById("username").value;
+  if (!name) return;
+  const code = generateCode(name);
+  users[code] = { balance: 0 };
+  document.getElementById("accountInfo").innerText =
+    `تم إنشاء الحساب\nكودك: ${code}\nالرصيد: 0$`;
 }
 
-/* ===== الكود الذي أرسلته أنت (مدمج) ===== */
-const response = {
-  status: "success",
-  data: {
-    balance: 123.45
+// ================== عرض الرصيد ==================
+function checkBalance() {
+  const code = document.getElementById("accountCode").value;
+  if (!users[code]) {
+    document.getElementById("balanceInfo").innerText = "الحساب غير موجود";
+    return;
   }
+  document.getElementById("balanceInfo").innerText =
+    `رصيدك: ${users[code].balance}$`;
+}
+
+// ================== أسعار ==================
+const prices = {
+  ff: 1,
+  pubg: 1
 };
 
-console.log(response.data.balance);
+// ================== شراء ==================
+function buy(type) {
+  const code = document.getElementById("accountCode").value;
+  if (!users[code]) return;
+  const price = prices[type];
+  if (users[code].balance < price) {
+    document.getElementById("buyInfo").innerText = "رصيد غير كافٍ";
+    return;
+  }
+  users[code].balance -= price;
+  document.getElementById("buyInfo").innerText =
+    `تم الشراء بنجاح – الرصيد المتبقي: ${users[code].balance}$`;
+}
 
-/* عرض الرصيد داخل الصفحة */
-document.getElementById("balance").textContent = response.data.balance + " $";
+// ================== شحن رصيد (مسؤول) ==================
+function charge() {
+  const code = document.getElementById("adminCode").value;
+  const amount = Number(document.getElementById("amount").value);
+  if (!users[code]) return;
+  users[code].balance += amount;
+  document.getElementById("adminInfo").innerText =
+    `تم الشحن – الرصيد الجديد: ${users[code].balance}$`;
+}
+
+// ================== API ==================
+function loadServices() {
+  fetch("http://api.denji-sms.xyz/api/v1/social/available")
+    .then(r => r.json())
+    .then(d => document.getElementById("apiResult").innerText =
+      JSON.stringify(d, null, 2));
+}
+
+function orderTikTok() {
+  fetch("http://api.denji-sms.xyz/api/v1/social/request", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      api_code: "tk_fy",
+      qty: 1000,
+      link: "https://www.tiktok.com/@username/video/12345"
+    })
+  })
+  .then(r => r.json())
+  .then(d => document.getElementById("apiResult").innerText =
+    JSON.stringify(d, null, 2));
+}
+
+function checkOrder() {
+  fetch("http://api.denji-sms.xyz/api/v1/social/status/5678")
+    .then(r => r.json())
+    .then(d => document.getElementById("apiResult").innerText =
+      JSON.stringify(d, null, 2));
+}
 </script>
-
-<div class="footer">
-© WALED SHOP
-</div>
 
 </body>
 </html>
