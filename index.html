@@ -9,20 +9,20 @@
 *{box-sizing:border-box;font-family:Arial}
 body{
 margin:0;
-background:#111;
-color:#fff;
+background:#0f0f0f;
 display:flex;
 justify-content:center;
+color:#fff;
 }
 .app{
 width:100%;
-max-width:390px;
+max-width:380px;
 min-height:100vh;
 padding:15px;
-background:linear-gradient(180deg,#ff6a00,#ff0000);
+background:linear-gradient(160deg,#ff6a00,#ff0000);
 }
 .hidden{display:none}
-.center{text-align:center}
+.center{text-align:center;margin-top:60px}
 
 button,input{
 width:100%;
@@ -30,8 +30,8 @@ padding:10px;
 margin:8px 0;
 border:none;
 border-radius:8px;
+font-size:14px;
 }
-
 button{
 background:#000;
 color:#fff;
@@ -43,34 +43,34 @@ display:flex;
 justify-content:space-between;
 align-items:center;
 }
-
 .balance{
 font-weight:bold;
+cursor:pointer;
 }
 
 .grid{
 display:grid;
 grid-template-columns:repeat(2,1fr);
 gap:12px;
-margin-top:20px;
+margin-top:25px;
 }
 
 .box{
-background:rgba(0,0,0,.5);
-padding:20px;
-border-radius:12px;
+background:rgba(0,0,0,.55);
+padding:18px;
+border-radius:14px;
 text-align:center;
 cursor:pointer;
 }
 
-.small{font-size:14px;color:#ddd}
+.small{font-size:13px;color:#ddd}
 </style>
 </head>
 
 <body>
 <div class="app">
 
-<!-- الصفحة الأولى -->
+<!-- البداية -->
 <div id="start" class="center">
 <h2>Ahmed Shop</h2>
 <button onclick="goLogin()">تسجيل دخول</button>
@@ -98,86 +98,124 @@ cursor:pointer;
 <!-- المتجر -->
 <div id="shop" class="hidden">
 <div class="top">
-<div class="balance">$ <span id="bal">0</span></div>
+<div class="balance" onclick="topup()">$ <span id="bal">0</span></div>
 <button onclick="logout()">خروج</button>
 </div>
 
 <div class="grid">
 <div class="box" onclick="freeFire()">🔥 Free Fire</div>
 <div class="box" onclick="apps()">📱 التطبيقات</div>
-<div class="box" onclick="topup()">💳 تعبئة الرصيد</div>
 <div class="box" onclick="orders()">📦 طلباتي</div>
+<div class="box" onclick="info()">ℹ️ معلومات</div>
 </div>
-
-<div id="content"></div>
 </div>
 
 </div>
 
 <script>
-let users=JSON.parse(localStorage.getItem("users")||"{}");
-let current=null;
+// ===== ريستارت كامل للموقع =====
+localStorage.removeItem("users");
 
-function goLogin(){show("login")}
-function goRegister(){show("register")}
-function back(){show("start")}
+// ===== تهيئة الحسابات =====
+let users = {
+  "wled49645@gmail.com": {
+    pass: "",
+    balance: 0,
+    orders: [],
+    admin: true
+  }
+};
 
+let current = null;
+
+// ===== تنقل =====
 function show(id){
 ["start","login","register","shop"].forEach(x=>{
 document.getElementById(x).classList.add("hidden");
 });
 document.getElementById(id).classList.remove("hidden");
 }
+function goLogin(){show("login")}
+function goRegister(){show("register")}
+function back(){show("start")}
 
+// ===== إنشاء حساب =====
 function register(){
-let e=regEmail.value,p=regPass.value;
-if(!e||!p)return alert("املأ الحقول");
-if(users[e])return alert("الحساب موجود");
-users[e]={pass:p,balance:0,orders:[]};
+let e=regEmail.value.trim();
+let p=regPass.value.trim();
+if(!e||!p) return alert("املأ جميع الحقول");
+if(users[e]) return alert("الحساب موجود");
+
+users[e]={
+pass:p,
+balance:0,
+orders:[],
+admin:(e==="wled49645@gmail.com")
+};
 save();
 alert("تم إنشاء الحساب");
 show("login");
 }
 
+// ===== تسجيل الدخول =====
 function login(){
-let e=loginEmail.value,p=loginPass.value;
-if(!users[e]||users[e].pass!==p)return alert("بيانات خاطئة");
+let e=loginEmail.value.trim();
+let p=loginPass.value.trim();
+if(!users[e]||users[e].pass!==p)
+return alert("بيانات غير صحيحة");
+
 current=e;
 show("shop");
 update();
 }
 
+// ===== تحديث الرصيد =====
+function update(){
+document.getElementById("bal").innerText=users[current].balance;
+}
+
+// ===== تسجيل خروج =====
 function logout(){
 current=null;
 location.reload();
 }
 
-function update(){
-bal.innerText=users[current].balance;
-}
-
+// ===== أقسام =====
 function freeFire(){
 let id=prompt("ادخل ID فري فاير");
-if(!id)return;
+if(!id) return;
 users[current].orders.push("شحن فري فاير - ID: "+id+" (قيد التنفيذ)");
 save();
 alert("سيتم الشحن خلال دقيقة إلى خمس دقائق");
 }
 
 function apps(){
-alert("قسم التطبيقات (قريبًا)");
-}
-
-function topup(){
-alert("تعبئة وهمية عبر شام كاش\n29607b06505ee18f34a7fc5022404325\nالحد الأدنى 5$");
+alert("قسم التطبيقات (وهمي)");
 }
 
 function orders(){
 let o=users[current].orders;
-if(o.length==0){alert("لا يوجد طلبات");return;}
+if(o.length===0){
+alert("لا يوجد طلبات");
+return;
+}
 alert(o.join("\n"));
 }
 
+function topup(){
+alert(
+"تعبئة وهمية عبر شام كاش\n\n"+
+"29607b06505ee18f34a7fc5022404325\n\n"+
+"الحد الأدنى 5$\n"+
+"سيتم الشحن خلال دقيقة إلى خمس دقائق"
+);
+}
+
+function info(){
+alert("متجر وهمي للتجربة فقط");
+}
+
+// ===== حفظ =====
 function save(){
 localStorage.setItem("users",JSON.stringify(users));
 }
