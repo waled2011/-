@@ -1,151 +1,168 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>Best Store</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WALED STORE</title>
 <style>
-body{margin:0;font-family:tahoma;background:#0f172a;color:#fff}
-header{background:#020617;padding:15px;display:flex;justify-content:space-between;align-items:center}
-button{background:#2563eb;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer}
-input,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:none}
+body{
+  margin:0;
+  font-family:Tahoma;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color:#fff;
+}
+.container{
+  max-width:420px;
+  margin:40px auto;
+  background:#111;
+  padding:20px;
+  border-radius:12px;
+}
+input,select,button{
+  width:100%;
+  padding:10px;
+  margin:6px 0;
+  border-radius:8px;
+  border:none;
+}
+button{
+  background:#00c6ff;
+  color:#000;
+  font-weight:bold;
+  cursor:pointer;
+}
 .hidden{display:none}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px;padding:15px}
-.card{background:#020617;padding:12px;border-radius:12px;text-align:center}
-.card img{width:100%;border-radius:10px}
-.nav{display:flex;gap:10px;padding:10px}
-.nav button{flex:1}
+.boxes{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+  margin-top:20px;
+}
+.box{
+  background:#1e1e1e;
+  padding:25px;
+  text-align:center;
+  border-radius:12px;
+  cursor:pointer;
+}
+.admin{
+  background:#222;
+  margin-top:20px;
+  padding:10px;
+  border-radius:10px;
+}
+img{max-width:100%;border-radius:8px}
 </style>
 </head>
-
 <body>
 
-<header>
-  <b>BEST STORE</b>
-  <div id="userBox">
-    <button onclick="openAuth()">تسجيل / دخول</button>
-  </div>
-</header>
-
-<!-- اختيار الأقسام -->
-<div class="nav">
-  <button onclick="setSection('apps')">التطبيقات</button>
-  <button onclick="setSection('games')">الألعاب</button>
-  <button onclick="setSection('charge')">شحن الألعاب</button>
+<div class="container" id="auth">
+<h2>إنشاء حساب</h2>
+<input id="name" placeholder="الاسم">
+<input id="email" placeholder="الإيميل">
+<input id="pass" type="password" placeholder="كلمة السر">
+<select id="currency">
+<option value="SYP">ليرة سورية</option>
+<option value="TRY">ليرة تركية</option>
+<option value="USD">دولار</option>
+</select>
+<button onclick="register()">إنشاء حساب</button>
+<button onclick="login()">تسجيل دخول</button>
+<p id="msg"></p>
 </div>
 
-<!-- تسجيل -->
-<div id="authBox" class="card hidden">
-  <h3>إنشاء حساب / دخول</h3>
-  <input id="name" placeholder="الاسم">
-  <input id="email" placeholder="البريد الإلكتروني">
-  <input id="password" type="password" placeholder="كلمة السر">
-  <select id="currency">
-    <option value="SYP">ليرة سورية</option>
-    <option value="TRY">ليرة تركية</option>
-    <option value="USD">دولار أمريكي</option>
-  </select>
-  <button onclick="register()">إنشاء حساب</button>
-  <button onclick="login()">تسجيل الدخول</button>
+<div class="container hidden" id="app">
+<h3 id="welcome"></h3>
+<p>الرصيد: <span id="balance">0</span> <span id="cur"></span></p>
+
+<div class="boxes">
+<div class="box">📱 التطبيقات</div>
+<div class="box">🎮 الألعاب</div>
+<div class="box">💎 شحن الألعاب</div>
+<div class="box" onclick="openTopup()">💳 تعبئة الرصيد</div>
 </div>
 
-<!-- لوحة الأدمن -->
-<div id="adminPanel" class="card hidden">
-  <h3>لوحة الأدمن</h3>
-  <input id="pName" placeholder="اسم المنتج">
-  <select id="pSection">
-    <option value="apps">تطبيقات</option>
-    <option value="games">ألعاب</option>
-    <option value="charge">شحن ألعاب</option>
-  </select>
-  <input id="pPrice" placeholder="السعر">
-  <input type="file" id="pImg">
-  <button onclick="addProduct()">إضافة</button>
+<div id="topup" class="hidden">
+<h3>تعبئة رصيد (شام كاش)</h3>
+<input id="amount" type="number" placeholder="المبلغ">
+<input id="tximg" type="file" accept="image/*">
+<button onclick="sendTopup()">إرسال الطلب</button>
 </div>
 
-<!-- المنتجات -->
-<div id="products" class="grid"></div>
+<div class="admin hidden" id="admin">
+<h3>طلبات تعبئة الرصيد</h3>
+<div id="orders"></div>
+</div>
+</div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
+<script>
+let adminEmail="wled49645@gmail.com";
 
-const firebaseConfig={
-  apiKey:"PUT_API_KEY",
-  authDomain:"PUT_AUTH_DOMAIN",
-  projectId:"PUT_PROJECT_ID",
-  storageBucket:"PUT_STORAGE_BUCKET",
-  messagingSenderId:"PUT_SENDER_ID",
-  appId:"PUT_APP_ID"
+function register(){
+let users=JSON.parse(localStorage.getItem("users")||"{}");
+let email=document.getElementById("email").value;
+if(users[email]){msg("الحساب موجود مسبقًا");return;}
+users[email]={
+name:name.value,
+pass:pass.value,
+currency:currency.value,
+balance:0
 };
-
-const ADMIN="wled49645@gmail.com";
-let currentSection="apps";
-
-const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
-const db=getFirestore(app);
-const storage=getStorage(app);
-
-window.openAuth=()=>authBox.classList.toggle("hidden");
-window.setSection=s=>{currentSection=s;loadProducts();};
-
-window.register=async()=>{
-  const user=await createUserWithEmailAndPassword(auth,email.value,password.value);
-  await sendEmailVerification(user.user);
-  alert("تم إرسال رسالة تحقق إلى بريدك");
-};
-
-window.login=async()=>{
-  const u=await signInWithEmailAndPassword(auth,email.value,password.value);
-  if(!u.user.emailVerified){
-    alert("يرجى تفعيل الحساب من الإيميل");
-    return;
-  }
-};
-
-onAuthStateChanged(auth,u=>{
-  if(!u)return;
-  userBox.innerText=u.email;
-  authBox.classList.add("hidden");
-  if(u.email===ADMIN) adminPanel.classList.remove("hidden");
-});
-
-window.addProduct=async()=>{
-  const file=pImg.files[0];
-  const imgRef=ref(storage,"products/"+Date.now());
-  await uploadBytes(imgRef,file);
-  const url=await getDownloadURL(imgRef);
-
-  await addDoc(collection(db,"products"),{
-    name:pName.value,
-    section:pSection.value,
-    price:pPrice.value,
-    img:url
-  });
-  loadProducts();
-};
-
-async function loadProducts(){
-  products.innerHTML="";
-  const q=await getDocs(collection(db,"products"));
-  q.forEach(d=>{
-    const p=d.data();
-    if(p.section===currentSection){
-      products.innerHTML+=`
-      <div class="card">
-        <img src="${p.img}">
-        <h4>${p.name}</h4>
-        <b>${p.price}</b>
-      </div>`;
-    }
-  });
+localStorage.setItem("users",JSON.stringify(users));
+msg("تم إنشاء الحساب ✔ سجل دخول الآن");
 }
 
-loadProducts();
-</script>
+function login(){
+let users=JSON.parse(localStorage.getItem("users")||"{}");
+let u=users[email.value];
+if(!u||u.pass!==pass.value){msg("بيانات غير صحيحة");return;}
+localStorage.setItem("current",email.value);
+loadApp();
+}
 
+function loadApp(){
+let email=localStorage.getItem("current");
+let users=JSON.parse(localStorage.getItem("users"));
+let u=users[email];
+auth.classList.add("hidden");
+app.classList.remove("hidden");
+welcome.innerText="مرحبًا "+u.name;
+balance.innerText=u.balance;
+cur.innerText=u.currency;
+if(email===adminEmail)loadAdmin();
+}
+
+function openTopup(){
+topup.classList.toggle("hidden");
+}
+
+function sendTopup(){
+let img=document.getElementById("tximg").files[0];
+if(!img){alert("الصورة إجبارية");return;}
+let orders=JSON.parse(localStorage.getItem("orders")||"[]");
+orders.push({
+email:localStorage.getItem("current"),
+amount:amount.value,
+img:URL.createObjectURL(img)
+});
+localStorage.setItem("orders",JSON.stringify(orders));
+alert("تم إرسال الطلب ✔");
+}
+
+function loadAdmin(){
+admin.classList.remove("hidden");
+let orders=JSON.parse(localStorage.getItem("orders")||"[]");
+orders.forEach(o=>{
+ordersDiv=document.getElementById("orders");
+ordersDiv.innerHTML+=`
+<p>${o.email} - ${o.amount}</p>
+<img src="${o.img}">
+<hr>`;
+});
+}
+
+function msg(t){document.getElementById("msg").innerText=t}
+
+if(localStorage.getItem("current"))loadApp();
+</script>
 </body>
 </html>
