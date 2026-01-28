@@ -9,6 +9,403 @@
 *{box-sizing:border-box;font-family:Arial}
 body{
 margin:0;
+min-height:100vh;
+background:linear-gradient(135deg,#ff6a00,#ff0000);
+display:flex;
+justify-content:center;
+align-items:center;
+color:#fff;
+}
+.blur{
+backdrop-filter:blur(10px);
+background:rgba(0,0,0,0.55);
+width:100%;
+max-width:420px;
+min-height:100vh;
+padding:15px;
+}
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+.balance{
+font-weight:bold;
+cursor:pointer;
+}
+.menu{
+cursor:pointer;
+font-size:22px;
+}
+.hidden{display:none}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:12px;
+margin-top:20px;
+}
+.box{
+background:rgba(255,255,255,0.1);
+padding:20px;
+border-radius:14px;
+text-align:center;
+cursor:pointer;
+}
+
+.center{
+display:flex;
+justify-content:center;
+gap:10px;
+margin-top:40px;
+}
+
+input,select,button{
+width:100%;
+padding:10px;
+margin:6px 0;
+border-radius:8px;
+border:none;
+}
+
+button{
+background:#ff9800;
+color:#000;
+font-weight:bold;
+cursor:pointer;
+}
+
+.popup{
+position:fixed;
+top:0;left:0;right:0;bottom:0;
+background:rgba(0,0,0,.7);
+display:flex;
+justify-content:center;
+align-items:center;
+}
+.card{
+background:#111;
+padding:20px;
+border-radius:12px;
+width:90%;
+max-width:300px;
+}
+</style>
+</head>
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ahmed Shop</title>
+
+<style>
+*{box-sizing:border-box;font-family:Arial}
+body{
+margin:0;
+min-height:100vh;
+background:linear-gradient(135deg,#ff6a00,#ff0000);
+display:flex;
+justify-content:center;
+align-items:center;
+color:#fff;
+}
+.blur{
+backdrop-filter:blur(10px);
+background:rgba(0,0,0,0.55);
+width:100%;
+max-width:420px;
+min-height:100vh;
+padding:15px;
+}
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+.balance{
+font-weight:bold;
+cursor:pointer;
+}
+.menu{
+cursor:pointer;
+font-size:22px;
+}
+.hidden{display:none}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:12px;
+margin-top:20px;
+}
+.box{
+background:rgba(255,255,255,0.1);
+padding:20px;
+border-radius:14px;
+text-align:center;
+cursor:pointer;
+}
+
+.center{
+display:flex;
+justify-content:center;
+gap:10px;
+margin-top:40px;
+}
+
+input,select,button{
+width:100%;
+padding:10px;
+margin:6px 0;
+border-radius:8px;
+border:none;
+}
+
+button{
+background:#ff9800;
+color:#000;
+font-weight:bold;
+cursor:pointer;
+}
+
+.popup{
+position:fixed;
+top:0;left:0;right:0;bottom:0;
+background:rgba(0,0,0,.7);
+display:flex;
+justify-content:center;
+align-items:center;
+}
+.card{
+background:#111;
+padding:20px;
+border-radius:12px;
+width:90%;
+max-width:300px;
+}
+</style>
+</head>
+
+<body>
+<div class="blur">
+
+<header>
+<div class="balance" onclick="openTopup()">💰 <span id="bal">0</span>$</div>
+<div class="menu" onclick="toggleMenu()">⋮</div>
+</header>
+
+<div id="menu" class="hidden">
+<div class="box" onclick="changeLang()">تغيير اللغة</div>
+<div class="box" onclick="changePass()">تغيير كلمة المرور</div>
+<div class="box" onclick="logout()">تسجيل الخروج</div>
+</div>
+
+<div id="auth" class="center">
+<div class="box">
+<h3>تسجيل الدخول</h3>
+<input id="loginEmail" placeholder="الإيميل">
+<input id="loginPass" type="password" placeholder="كلمة المرور">
+<button onclick="login()">دخول</button>
+</div>
+<div class="box">
+<h3>إنشاء حساب</h3>
+<input id="regEmail" placeholder="الإيميل">
+<input id="regPass" type="password" placeholder="كلمة المرور">
+<button onclick="register()">إنشاء</button>
+</div>
+</div>
+
+<div id="shop" class="hidden">
+<div class="grid">
+<div class="box" onclick="openFF()">🔥 Free Fire</div>
+<div class="box" onclick="openPUBG()">🎮 PUBG</div>
+</div>
+</div>
+
+</div>
+
+<script>
+let user=null;
+let users=JSON.parse(localStorage.getItem("users")||"{}");
+
+users["wled49645@gmail.com"]={pass:"wled12123456",bal:0};
+
+function register(){
+let e=regEmail.value,p=regPass.value;
+if(!e||!p)return alert("املأ جميع الحقول");
+if(users[e])return alert("الحساب موجود");
+users[e]={pass:p,bal:0};
+save();
+alert("تم إنشاء الحساب");
+}
+
+function login(){
+let e=loginEmail.value,p=loginPass.value;
+if(!users[e]||users[e].pass!==p)return alert("بيانات خاطئة");
+user=e;
+document.getElementById("auth").classList.add("hidden");
+document.getElementById("shop").classList.remove("hidden");
+updateBal();
+}
+
+function logout(){
+user=null;
+location.reload();
+}
+
+function updateBal(){
+document.getElementById("bal").innerText=users[user].bal;
+}
+
+function openTopup(){
+alert("شحن وهمي عبر شام كاش\n29607b06505ee18f34a7fc5022404325\nالحد الأدنى 5$");
+}
+
+function openFF(){
+let id=prompt("ادخل ID فري فاير");
+if(id) alert("سيتم الشحن خلال دقيقة إلى خمس دقائق");
+}
+
+function openPUBG(){
+let id=prompt("ادخل ID ببجي");
+if(id) alert("سيتم الشحن خلال دقيقة إلى خمس دقائق");
+}
+
+function toggleMenu(){
+menu.classList.toggle("hidden");
+}
+
+function changePass(){
+let np=prompt("كلمة مرور جديدة");
+if(np){users[user].pass=np;save();alert("تم التغيير");}
+}
+
+function changeLang(){
+alert("تم تغيير اللغة (وهمي)");
+}
+
+function save(){
+localStorage.setItem("users",JSON.stringify(users));
+}
+</script>
+
+</body>
+</html>
+<body>
+<div class="blur">
+
+<header>
+<div class="balance" onclick="openTopup()">💰 <span id="bal">0</span>$</div>
+<div class="menu" onclick="toggleMenu()">⋮</div>
+</header>
+
+<div id="menu" class="hidden">
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ahmed Shop</title>
+
+<style>
+*{box-sizing:border-box;font-family:Arial}
+body{
+margin:0;
+min-height:100vh;
+background:linear-gradient(135deg,#ff6a00,#ff0000);
+display:flex;
+justify-content:center;
+align-items:center;
+color:#fff;
+}
+.blur{
+backdrop-filter:blur(10px);
+background:rgba(0,0,0,0.55);
+width:100%;
+max-width:420px;
+min-height:100vh;
+padding:15px;
+}
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+.balance{
+font-weight:bold;
+cursor:pointer;
+}
+.menu{
+cursor:pointer;
+font-size:22px;
+}
+.hidden{display:none}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:12px;
+margin-top:20px;
+}
+.box{
+background:rgba(255,255,255,0.1);
+padding:20px;
+border-radius:14px;
+text-align:center;
+cursor:pointer;
+}
+
+.center{
+display:flex;
+justify-content:center;
+gap:10px;
+margin-top:40px;
+}
+
+input,select,button{
+width:100%;
+padding:10px;
+margin:6px 0;
+border-radius:8px;
+border:none;
+}
+
+button{
+background:#ff9800;
+color:#000;
+font-weight:bold;
+cursor:pointer;
+}
+
+.popup{
+position:fixed;
+top:0;left:0;right:0;bottom:0;
+background:rgba(0,0,0,.7);
+display:flex;
+justify-content:center;
+align-items:center;
+}
+.card{
+background:#111;
+padding:20px;
+border-radius:12px;
+width:90%;
+max-width:300px;
+}
+</style>
+</head>
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ahmed Shop</title>
+
+<style>
+*{box-sizing:border-box;font-family:Arial}
+body{
+margin:0;
 background:#0f0f0f;
 display:flex;
 justify-content:center;
