@@ -2,89 +2,111 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ahmed Shop</title>
+
 <style>
+*{box-sizing:border-box}
 body{
   margin:0;
-  font-family:Tahoma;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  font-family:Tajawal,Arial;
+  background:#0e1a25;
   color:#fff;
+  font-size:14px;
 }
 .hidden{display:none}
+
+/* HEADER */
 header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:10px 15px;
-  background:#00000088;
+  padding:8px 12px;
+  background:#000000cc;
 }
 .balance{
   background:#1abc9c;
-  padding:8px 14px;
-  border-radius:20px;
-  cursor:pointer;
+  padding:6px 12px;
+  border-radius:18px;
   font-weight:bold;
-}
-.settings{
+  font-size:13px;
   cursor:pointer;
 }
+.settings{cursor:pointer;font-size:18px}
+
+/* CONTAINER */
 .container{
-  padding:20px;
+  padding:12px;
+  padding-bottom:70px;
 }
-.center-grid{
+
+/* GRID */
+.grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-  gap:15px;
-  margin-top:30px;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  margin-top:20px;
 }
 .card{
-  background:#ffffff12;
-  border-radius:15px;
-  padding:20px;
+  background:#162433;
+  border-radius:14px;
+  padding:20px 10px;
   text-align:center;
   cursor:pointer;
-  transition:.3s;
 }
-.card:hover{background:#1abc9c}
-input,select,button,textarea{
+.card:active{background:#1abc9c;color:#000}
+
+/* INPUTS */
+input,select,textarea,button{
   width:100%;
-  margin:8px 0;
+  margin:6px 0;
   padding:10px;
   border:none;
   border-radius:8px;
+  font-size:14px;
 }
 button{
   background:#1abc9c;
-  color:#000;
   font-weight:bold;
   cursor:pointer;
 }
+
+/* NAV */
 nav{
   position:fixed;
   bottom:0;
   left:0;
   right:0;
-  background:#000000cc;
+  background:#000000e6;
   display:flex;
   justify-content:space-around;
-  padding:10px 0;
+  padding:8px 0;
+  font-size:13px;
 }
 nav div{cursor:pointer}
+
+/* ORDERS */
 .order{
-  background:#ffffff12;
+  background:#162433;
   padding:10px;
   border-radius:10px;
-  margin:8px 0;
+  margin:6px 0;
+  font-size:13px;
 }
-.status-wait{color:yellow}
-.status-ok{color:#1abc9c}
-.status-no{color:red}
+.empty{
+  text-align:center;
+  opacity:.7;
+  margin-top:30px;
+}
 </style>
 </head>
+
 <body>
 
 <header>
-  <div class="balance" onclick="showPage('topup')">💰 <span id="bal">0</span></div>
+  <div class="balance" onclick="showPage('topup')">
+    💰 <span id="bal">0</span> $
+  </div>
   <div class="settings" onclick="showPage('settings')">⚙️</div>
 </header>
 
@@ -92,26 +114,23 @@ nav div{cursor:pointer}
 
 <!-- AUTH -->
 <div id="auth">
-  <h2>تسجيل حساب</h2>
+  <h3>إنشاء حساب</h3>
   <input id="name" placeholder="الاسم">
   <input id="email" placeholder="البريد الإلكتروني">
   <input id="pass" type="password" placeholder="كلمة المرور">
-  <select id="currency">
-    <option value="USD">دولار</option>
-    <option value="TRY">ليرة تركية</option>
-    <option value="SYP">ليرة سورية</option>
-  </select>
   <button onclick="register()">إنشاء حساب</button>
-  <hr>
+
+  <hr style="opacity:.2">
+
   <h3>تسجيل دخول</h3>
-  <input id="l_email" placeholder="البريد">
+  <input id="l_email" placeholder="البريد الإلكتروني">
   <input id="l_pass" type="password" placeholder="كلمة المرور">
   <button onclick="login()">دخول</button>
 </div>
 
 <!-- HOME -->
 <div id="home" class="hidden">
-  <div class="center-grid">
+  <div class="grid">
     <div class="card" onclick="showPage('games')">🎮 الألعاب</div>
     <div class="card" onclick="showPage('apps')">📱 التطبيقات</div>
     <div class="card" onclick="showPage('numbers')">📞 الأرقام</div>
@@ -121,9 +140,10 @@ nav div{cursor:pointer}
 
 <!-- GAMES -->
 <div id="games" class="hidden">
-  <h2>الألعاب</h2>
-  <div class="card" onclick="showPage('ff')">🔥 Free Fire</div>
-  <div class="card" onclick="showPage('pubg')">🎯 PUBG</div>
+  <div class="grid">
+    <div class="card" onclick="showPage('ff')">🔥 Free Fire</div>
+    <div class="card" onclick="showPage('pubg')">🎯 PUBG</div>
+  </div>
 </div>
 
 <div id="ff" class="hidden">
@@ -136,7 +156,7 @@ nav div{cursor:pointer}
     <option>400 جوهرة - 2$</option>
   </select>
   <textarea placeholder="ملاحظة"></textarea>
-  <button onclick="order()">شحن</button>
+  <button onclick="addOrder()">شحن</button>
 </div>
 
 <div id="pubg" class="hidden">
@@ -147,27 +167,30 @@ nav div{cursor:pointer}
     <option>120 UC - 1$</option>
     <option>300 UC - 2$</option>
   </select>
-  <button onclick="order()">شحن</button>
+  <button onclick="addOrder()">شحن</button>
 </div>
 
 <!-- APPS -->
 <div id="apps" class="hidden">
-  <h3>التطبيقات</h3>
-  <div class="card">شاهد</div>
+  <div class="grid">
+    <div class="card">شاهد</div>
+  </div>
 </div>
 
 <!-- NUMBERS -->
 <div id="numbers" class="hidden">
-  <h3>الأرقام</h3>
-  <div class="card">WhatsApp</div>
-  <div class="card">Telegram</div>
+  <div class="grid">
+    <div class="card">WhatsApp</div>
+    <div class="card">Telegram</div>
+  </div>
 </div>
 
 <!-- TOPUP -->
 <div id="topup" class="hidden">
-  <h3>تعبئة الرصيد - Sham Cash</h3>
-  <p>الكود: <b>29607b06505ee18f34a7fc5022404325</b></p>
-  <input id="amount" type="number" placeholder="المبلغ (أقل شيء 5$)">
+  <h3>Sham Cash</h3>
+  <p>الكود:</p>
+  <b>29607b06505ee18f34a7fc5022404325</b>
+  <input id="amount" type="number" placeholder="أقل مبلغ 5$">
   <input type="file">
   <button onclick="topup()">إرسال</button>
 </div>
@@ -181,7 +204,6 @@ nav div{cursor:pointer}
 <!-- SETTINGS -->
 <div id="settings" class="hidden">
   <h3>الإعدادات</h3>
-  <button onclick="changeLang()">تغيير اللغة</button>
   <input id="newpass" type="password" placeholder="كلمة مرور جديدة">
   <button onclick="changePass()">تغيير كلمة المرور</button>
   <p>الدعم: +9635022404</p>
@@ -196,47 +218,76 @@ nav div{cursor:pointer}
 </nav>
 
 <script>
-let user=null,orders=[];
+let user=null;
+let orders=[];
+
 function showPage(p){
  document.querySelectorAll('.container > div').forEach(d=>d.classList.add('hidden'));
  document.getElementById(p).classList.remove('hidden');
+ if(p==="orders") renderOrders();
 }
+
 function register(){
- if(!name.value||!email.value||!pass.value)return alert("املأ جميع الحقول");
- localStorage.user=JSON.stringify({email:email.value,pass:pass.value,balance:0});
+ if(!email.value||!pass.value)return alert("املأ الحقول");
+ if(localStorage.getItem(email.value)) return alert("الحساب موجود");
+ let isAdmin = email.value==="wled49645@gmail.com";
+ localStorage.setItem(email.value,JSON.stringify({
+   email:email.value,
+   pass:pass.value,
+   balance:0,
+   admin:isAdmin,
+   orders:[]
+ }));
  alert("تم إنشاء الحساب");
 }
+
 function login(){
- let u=JSON.parse(localStorage.user||'null');
- if(!u||l_email.value!=u.email||l_pass.value!=u.pass)return alert("خطأ");
- user=u; bal.innerText=u.balance; showPage('home');
+ let data=localStorage.getItem(l_email.value);
+ if(!data)return alert("الحساب غير موجود");
+ let u=JSON.parse(data);
+ if(u.pass!==l_pass.value)return alert("كلمة المرور خاطئة");
+ user=u;
+ bal.innerText=user.balance;
+ orders=user.orders||[];
+ showPage('home');
 }
-function logout(){location.reload()}
-function order(){
- orders.push({s:"قيد التنفيذ"});
- renderOrders();
- setTimeout(()=>{orders[orders.length-1].s="مرفوض";renderOrders()},5000);
+
+function addOrder(){
+ orders.push({status:"قيد التنفيذ"});
+ user.orders=orders;
+ localStorage.setItem(user.email,JSON.stringify(user));
  alert("قيد الشحن 1-5 دقائق");
+ setTimeout(()=>{
+   orders[orders.length-1].status="مرفوض";
+   localStorage.setItem(user.email,JSON.stringify(user));
+ },5000);
 }
+
 function renderOrders(){
- orderList.innerHTML='';
+ let list=document.getElementById("orderList");
+ list.innerHTML="";
+ if(!orders.length){
+   list.innerHTML='<div class="empty">لا يوجد طلبات</div>';
+   return;
+ }
  orders.forEach(o=>{
- orderList.innerHTML+=`<div class="order status-wait">${o.s}</div>`;
+   list.innerHTML+=`<div class="order">${o.status}</div>`;
  });
 }
+
 function topup(){
  if(amount.value<5)return alert("أقل مبلغ 5$");
  alert("سيتم تعبئة حسابك خلال 1-5 دقائق");
 }
-function changeLang(){
- document.dir=document.dir=="rtl"?"ltr":"rtl";
-}
+
 function changePass(){
- if(!newpass.value)return alert("فارغ");
- let u=JSON.parse(localStorage.user);u.pass=newpass.value;
- localStorage.user=JSON.stringify(u);
- alert("تم التغيير");
+ if(!newpass.value)return alert("فارغة");
+ user.pass=newpass.value;
+ localStorage.setItem(user.email,JSON.stringify(user));
+ alert("تم تغيير كلمة المرور");
 }
+
+function logout(){location.reload()}
 </script>
 
 </body>
