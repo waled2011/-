@@ -1,293 +1,199 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ahmed Shop</title>
 
 <style>
-*{box-sizing:border-box}
+*{box-sizing:border-box;font-family:Arial}
 body{
-  margin:0;
-  font-family:Tajawal,Arial;
-  background:#0e1a25;
-  color:#fff;
-  font-size:14px;
+margin:0;
+min-height:100vh;
+background:linear-gradient(135deg,#ff6a00,#ff0000);
+display:flex;
+justify-content:center;
+align-items:center;
+color:#fff;
+}
+.blur{
+backdrop-filter:blur(10px);
+background:rgba(0,0,0,0.55);
+width:100%;
+max-width:420px;
+min-height:100vh;
+padding:15px;
+}
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+.balance{
+font-weight:bold;
+cursor:pointer;
+}
+.menu{
+cursor:pointer;
+font-size:22px;
 }
 .hidden{display:none}
 
-/* HEADER */
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:8px 12px;
-  background:#000000cc;
-}
-.balance{
-  background:#1abc9c;
-  padding:6px 12px;
-  border-radius:18px;
-  font-weight:bold;
-  font-size:13px;
-  cursor:pointer;
-}
-.settings{cursor:pointer;font-size:18px}
-
-/* CONTAINER */
-.container{
-  padding:12px;
-  padding-bottom:70px;
-}
-
-/* GRID */
 .grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:12px;
-  margin-top:20px;
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:12px;
+margin-top:20px;
+}
+.box{
+background:rgba(255,255,255,0.1);
+padding:20px;
+border-radius:14px;
+text-align:center;
+cursor:pointer;
+}
+
+.center{
+display:flex;
+justify-content:center;
+gap:10px;
+margin-top:40px;
+}
+
+input,select,button{
+width:100%;
+padding:10px;
+margin:6px 0;
+border-radius:8px;
+border:none;
+}
+
+button{
+background:#ff9800;
+color:#000;
+font-weight:bold;
+cursor:pointer;
+}
+
+.popup{
+position:fixed;
+top:0;left:0;right:0;bottom:0;
+background:rgba(0,0,0,.7);
+display:flex;
+justify-content:center;
+align-items:center;
 }
 .card{
-  background:#162433;
-  border-radius:14px;
-  padding:20px 10px;
-  text-align:center;
-  cursor:pointer;
-}
-.card:active{background:#1abc9c;color:#000}
-
-/* INPUTS */
-input,select,textarea,button{
-  width:100%;
-  margin:6px 0;
-  padding:10px;
-  border:none;
-  border-radius:8px;
-  font-size:14px;
-}
-button{
-  background:#1abc9c;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-/* NAV */
-nav{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#000000e6;
-  display:flex;
-  justify-content:space-around;
-  padding:8px 0;
-  font-size:13px;
-}
-nav div{cursor:pointer}
-
-/* ORDERS */
-.order{
-  background:#162433;
-  padding:10px;
-  border-radius:10px;
-  margin:6px 0;
-  font-size:13px;
-}
-.empty{
-  text-align:center;
-  opacity:.7;
-  margin-top:30px;
+background:#111;
+padding:20px;
+border-radius:12px;
+width:90%;
+max-width:300px;
 }
 </style>
 </head>
 
 <body>
+<div class="blur">
 
 <header>
-  <div class="balance" onclick="showPage('topup')">
-    💰 <span id="bal">0</span> $
-  </div>
-  <div class="settings" onclick="showPage('settings')">⚙️</div>
+<div class="balance" onclick="openTopup()">💰 <span id="bal">0</span>$</div>
+<div class="menu" onclick="toggleMenu()">⋮</div>
 </header>
 
-<div class="container">
-
-<!-- AUTH -->
-<div id="auth">
-  <h3>إنشاء حساب</h3>
-  <input id="name" placeholder="الاسم">
-  <input id="email" placeholder="البريد الإلكتروني">
-  <input id="pass" type="password" placeholder="كلمة المرور">
-  <button onclick="register()">إنشاء حساب</button>
-
-  <hr style="opacity:.2">
-
-  <h3>تسجيل دخول</h3>
-  <input id="l_email" placeholder="البريد الإلكتروني">
-  <input id="l_pass" type="password" placeholder="كلمة المرور">
-  <button onclick="login()">دخول</button>
+<div id="menu" class="hidden">
+<div class="box" onclick="changeLang()">تغيير اللغة</div>
+<div class="box" onclick="changePass()">تغيير كلمة المرور</div>
+<div class="box" onclick="logout()">تسجيل الخروج</div>
 </div>
 
-<!-- HOME -->
-<div id="home" class="hidden">
-  <div class="grid">
-    <div class="card" onclick="showPage('games')">🎮 الألعاب</div>
-    <div class="card" onclick="showPage('apps')">📱 التطبيقات</div>
-    <div class="card" onclick="showPage('numbers')">📞 الأرقام</div>
-    <div class="card" onclick="showPage('topup')">💳 تعبئة الرصيد</div>
-  </div>
+<div id="auth" class="center">
+<div class="box">
+<h3>تسجيل الدخول</h3>
+<input id="loginEmail" placeholder="الإيميل">
+<input id="loginPass" type="password" placeholder="كلمة المرور">
+<button onclick="login()">دخول</button>
+</div>
+<div class="box">
+<h3>إنشاء حساب</h3>
+<input id="regEmail" placeholder="الإيميل">
+<input id="regPass" type="password" placeholder="كلمة المرور">
+<button onclick="register()">إنشاء</button>
+</div>
 </div>
 
-<!-- GAMES -->
-<div id="games" class="hidden">
-  <div class="grid">
-    <div class="card" onclick="showPage('ff')">🔥 Free Fire</div>
-    <div class="card" onclick="showPage('pubg')">🎯 PUBG</div>
-  </div>
+<div id="shop" class="hidden">
+<div class="grid">
+<div class="box" onclick="openFF()">🔥 Free Fire</div>
+<div class="box" onclick="openPUBG()">🎮 PUBG</div>
 </div>
-
-<div id="ff" class="hidden">
-  <h3>Free Fire</h3>
-  <input placeholder="ID اللاعب">
-  <select>
-    <option>100 جوهرة - 0.5$</option>
-    <option>200 جوهرة - 1$</option>
-    <option>300 جوهرة - 1.5$</option>
-    <option>400 جوهرة - 2$</option>
-  </select>
-  <textarea placeholder="ملاحظة"></textarea>
-  <button onclick="addOrder()">شحن</button>
-</div>
-
-<div id="pubg" class="hidden">
-  <h3>PUBG</h3>
-  <input placeholder="ID اللاعب">
-  <select>
-    <option>60 UC - 0.5$</option>
-    <option>120 UC - 1$</option>
-    <option>300 UC - 2$</option>
-  </select>
-  <button onclick="addOrder()">شحن</button>
-</div>
-
-<!-- APPS -->
-<div id="apps" class="hidden">
-  <div class="grid">
-    <div class="card">شاهد</div>
-  </div>
-</div>
-
-<!-- NUMBERS -->
-<div id="numbers" class="hidden">
-  <div class="grid">
-    <div class="card">WhatsApp</div>
-    <div class="card">Telegram</div>
-  </div>
-</div>
-
-<!-- TOPUP -->
-<div id="topup" class="hidden">
-  <h3>Sham Cash</h3>
-  <p>الكود:</p>
-  <b>29607b06505ee18f34a7fc5022404325</b>
-  <input id="amount" type="number" placeholder="أقل مبلغ 5$">
-  <input type="file">
-  <button onclick="topup()">إرسال</button>
-</div>
-
-<!-- ORDERS -->
-<div id="orders" class="hidden">
-  <h3>طلباتي</h3>
-  <div id="orderList"></div>
-</div>
-
-<!-- SETTINGS -->
-<div id="settings" class="hidden">
-  <h3>الإعدادات</h3>
-  <input id="newpass" type="password" placeholder="كلمة مرور جديدة">
-  <button onclick="changePass()">تغيير كلمة المرور</button>
-  <p>الدعم: +9635022404</p>
 </div>
 
 </div>
-
-<nav>
-  <div onclick="showPage('home')">🏠</div>
-  <div onclick="showPage('orders')">📦</div>
-  <div onclick="logout()">🚪</div>
-</nav>
 
 <script>
 let user=null;
-let orders=[];
+let users=JSON.parse(localStorage.getItem("users")||"{}");
 
-function showPage(p){
- document.querySelectorAll('.container > div').forEach(d=>d.classList.add('hidden'));
- document.getElementById(p).classList.remove('hidden');
- if(p==="orders") renderOrders();
-}
+users["wled49645@gmail.com"]={pass:"wled12123456",bal:0};
 
 function register(){
- if(!email.value||!pass.value)return alert("املأ الحقول");
- if(localStorage.getItem(email.value)) return alert("الحساب موجود");
- let isAdmin = email.value==="wled49645@gmail.com";
- localStorage.setItem(email.value,JSON.stringify({
-   email:email.value,
-   pass:pass.value,
-   balance:0,
-   admin:isAdmin,
-   orders:[]
- }));
- alert("تم إنشاء الحساب");
+let e=regEmail.value,p=regPass.value;
+if(!e||!p)return alert("املأ جميع الحقول");
+if(users[e])return alert("الحساب موجود");
+users[e]={pass:p,bal:0};
+save();
+alert("تم إنشاء الحساب");
 }
 
 function login(){
- let data=localStorage.getItem(l_email.value);
- if(!data)return alert("الحساب غير موجود");
- let u=JSON.parse(data);
- if(u.pass!==l_pass.value)return alert("كلمة المرور خاطئة");
- user=u;
- bal.innerText=user.balance;
- orders=user.orders||[];
- showPage('home');
+let e=loginEmail.value,p=loginPass.value;
+if(!users[e]||users[e].pass!==p)return alert("بيانات خاطئة");
+user=e;
+document.getElementById("auth").classList.add("hidden");
+document.getElementById("shop").classList.remove("hidden");
+updateBal();
 }
 
-function addOrder(){
- orders.push({status:"قيد التنفيذ"});
- user.orders=orders;
- localStorage.setItem(user.email,JSON.stringify(user));
- alert("قيد الشحن 1-5 دقائق");
- setTimeout(()=>{
-   orders[orders.length-1].status="مرفوض";
-   localStorage.setItem(user.email,JSON.stringify(user));
- },5000);
+function logout(){
+user=null;
+location.reload();
 }
 
-function renderOrders(){
- let list=document.getElementById("orderList");
- list.innerHTML="";
- if(!orders.length){
-   list.innerHTML='<div class="empty">لا يوجد طلبات</div>';
-   return;
- }
- orders.forEach(o=>{
-   list.innerHTML+=`<div class="order">${o.status}</div>`;
- });
+function updateBal(){
+document.getElementById("bal").innerText=users[user].bal;
 }
 
-function topup(){
- if(amount.value<5)return alert("أقل مبلغ 5$");
- alert("سيتم تعبئة حسابك خلال 1-5 دقائق");
+function openTopup(){
+alert("شحن وهمي عبر شام كاش\n29607b06505ee18f34a7fc5022404325\nالحد الأدنى 5$");
+}
+
+function openFF(){
+let id=prompt("ادخل ID فري فاير");
+if(id) alert("سيتم الشحن خلال دقيقة إلى خمس دقائق");
+}
+
+function openPUBG(){
+let id=prompt("ادخل ID ببجي");
+if(id) alert("سيتم الشحن خلال دقيقة إلى خمس دقائق");
+}
+
+function toggleMenu(){
+menu.classList.toggle("hidden");
 }
 
 function changePass(){
- if(!newpass.value)return alert("فارغة");
- user.pass=newpass.value;
- localStorage.setItem(user.email,JSON.stringify(user));
- alert("تم تغيير كلمة المرور");
+let np=prompt("كلمة مرور جديدة");
+if(np){users[user].pass=np;save();alert("تم التغيير");}
 }
 
-function logout(){location.reload()}
+function changeLang(){
+alert("تم تغيير اللغة (وهمي)");
+}
+
+function save(){
+localStorage.setItem("users",JSON.stringify(users));
+}
 </script>
 
 </body>
