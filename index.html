@@ -1,197 +1,657 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
 <meta charset="UTF-8">
 <title>Ahmed Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 body{
 margin:0;
-font-family:Arial;
-background:linear-gradient(135deg,#141e30,#243b55);
+font-family:Tahoma, Arial;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
 color:#fff;
+direction:rtl;
 }
-.container{
-max-width:900px;
-margin:30px auto;
+
+.hidden{display:none}
+
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:12px;
 background:#111;
+}
+
+.balance{
+background:#222;
+padding:6px 12px;
+border-radius:20px;
+font-weight:bold;
+}
+
+.container{
+padding:15px;
+}
+
+.cards{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:15px;
+margin-top:20px;
+}
+
+.card{
+background:#1e1e1e;
+border-radius:15px;
 padding:20px;
+text-align:center;
+cursor:pointer;
+transition:.3s;
+}
+
+.card:hover{transform:scale(1.03)}
+
+.card img{
+width:100%;
 border-radius:12px;
 }
-input,select,button{
+
+.section-title{
+margin-top:20px;
+font-size:18px;
+font-weight:bold;
+}
+
+.bottom-nav{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+background:#111;
+display:flex;
+justify-content:space-around;
+padding:10px 0;
+}
+
+.bottom-nav div{
+cursor:pointer;
+font-size:14px;
+}
+
+button,input,select{
 width:100%;
 padding:10px;
 margin:6px 0;
 border-radius:8px;
 border:none;
 }
+
 button{
 background:#00d4ff;
 font-weight:bold;
 cursor:pointer;
 }
+</style>
+</head>
+
+<body>
+
+<header>
+<div id="logo">🛒 Ahmed Shop</div>
+<div class="balance">
+<span id="balanceText">الرصيد</span>:
+<span id="balance">0</span>
+<span id="currency">USD</span>
+</div>
+</header>
+
+<div class="container" id="home">
+
+<div class="cards">
+<div class="card" onclick="openSection('games')">
+🎮<br>
+<span data-lang="games">قسم الألعاب</span>
+</div>
+
+<div class="card" onclick="openSection('apps')">
+📱<br>
+<span data-lang="apps">قسم التطبيقات</span>
+</div>
+
+<div class="card" onclick="openSection('topup')">
+💎<br>
+<span data-lang="topup">شحن الألعاب</span>
+</div>
+
+<div class="card" onclick="openSection('wallet')">
+💳<br>
+<span data-lang="wallet">تعبئة الرصيد</span>
+</div>
+</div>
+
+</div>
+
+<div class="container hidden" id="content"></div>
+
+<div class="container hidden" id="settings">
+<h3 data-lang="settings">الإعدادات</h3>
+
+<button onclick="setLang('ar')">🇸🇦 العربية</button>
+<button onclick="setLang('en')">🇺🇸 English</button>
+
+<button onclick="changePassword()" data-lang="changePass">تغيير كلمة المرور</button>
+
+<p data-lang="support">الدعم: +9635022404</p>
+</div>
+
+<div class="bottom-nav">
+<div onclick="goHome()">🏠</div>
+<div onclick="openOrders()">📦</div>
+<div onclick="openSettings()">⚙️</div>
+<div onclick="logout()">🚪</div>
+</div>
+
+<script>
+/* نظام اللغة */
+const translations={
+ar:{
+games:"قسم الألعاب",
+apps:"قسم التطبيقات",
+topup:"شحن الألعاب",
+wallet:"تعبئة الرصيد",
+settings:"الإعدادات",
+changePass:"تغيير كلمة المرور",
+support:"الدعم: +9635022404",
+balance:"الرصيد"
+},
+en:{
+games:"Games",
+apps:"Applications",
+topup:"Game Top-Up",
+wallet:"Wallet",
+settings:"Settings",
+changePass:"Change Password",
+support:"Support: +9635022404",
+balance:"Balance"
+}
+};
+
+function setLang(lang){
+localStorage.setItem("lang",lang);
+applyLang();
+}
+
+function applyLang(){
+let lang=localStorage.getItem("lang")||"ar";
+document.body.dir = lang==="ar"?"rtl":"ltr";
+document.querySelectorAll("[data-lang]").forEach(el=>{
+el.innerText = translations[lang][el.dataset.lang];
+});
+document.getElementById("balanceText").innerText =
+translations[lang].balance;
+}
+
+applyLang();
+
+/* تنقل */
+function goHome(){
+content.classList.add("hidden");
+home.classList.remove("hidden");
+settings.classList.add("hidden");
+}
+
+function openSettings(){
+home.classList.add("hidden");
+content.classList.add("hidden");
+settings.classList.remove("hidden");
+}
+</script>
+
+</body>
+</html>
+<script>
+/* =======================
+   المستخدم + الرصيد
+======================= */
+const adminEmail = "wled49645@gmail.com";
+
+function getUser(){
+  return JSON.parse(localStorage.getItem("user")||"{}");
+}
+function saveUser(u){
+  localStorage.setItem("user",JSON.stringify(u));
+}
+if(!localStorage.getItem("user")){
+  saveUser({
+    email:"guest",
+    balance:0,
+    currency:"USD",
+    orders:[]
+  });
+}
+function updateBalanceUI(){
+  let u=getUser();
+  document.getElementById("balance").innerText=u.balance;
+  document.getElementById("currency").innerText=u.currency;
+}
+updateBalanceUI();
+
+/* =======================
+   المنتجات
+======================= */
+function getProducts(){
+  return JSON.parse(localStorage.getItem("products")||"[]");
+}
+function saveProducts(p){
+  localStorage.setItem("products",JSON.stringify(p));
+}
+
+/* منتجات افتراضية */
+if(getProducts().length===0){
+  saveProducts([
+    {id:1,name:"شحن PUBG",price:10,cat:"games"},
+    {id:2,name:"شحن Free Fire",price:5,cat:"games"},
+    {id:3,name:"اشتراك Netflix",price:7,cat:"apps"}
+  ]);
+}
+
+/* =======================
+   فتح الأقسام
+======================= */
+function openSection(cat){
+  home.classList.add("hidden");
+  settings.classList.add("hidden");
+  content.classList.remove("hidden");
+  content.innerHTML = "";
+
+  if(cat==="wallet"){
+    walletPage();
+    return;
+  }
+
+  let title={
+    games:"🎮 قسم الألعاب",
+    apps:"📱 قسم التطبيقات",
+    topup:"💎 شحن الألعاب"
+  };
+  content.innerHTML += `<h3>${title[cat]}</h3>`;
+
+  let products=getProducts();
+  products.forEach(p=>{
+    if(p.cat===cat){
+      content.innerHTML+=`
+      <div class="card">
+        <b>${p.name}</b><br>
+        السعر: ${p.price} ${getUser().currency}<br>
+        <button onclick="buyProduct(${p.id})">شراء</button>
+      </div>
+      `;
+    }
+  });
+}
+
+/* =======================
+   شراء منتج
+======================= */
+function buyProduct(id){
+  let u=getUser();
+  let p=getProducts().find(x=>x.id===id);
+  if(u.balance < p.price){
+    alert("رصيدك غير كافٍ");
+    return;
+  }
+  u.balance -= p.price;
+  u.orders.push({
+    product:p.name,
+    status:"قيد التنفيذ"
+  });
+  saveUser(u);
+  updateBalanceUI();
+  alert("تم إنشاء الطلب ✔");
+}
+
+/* =======================
+   الطلبات
+======================= */
+function openOrders(){
+  home.classList.add("hidden");
+  settings.classList.add("hidden");
+  content.classList.remove("hidden");
+
+  let u=getUser();
+  content.innerHTML="<h3>📦 طلباتي</h3>";
+  if(u.orders.length===0){
+    content.innerHTML+="لا يوجد طلبات";
+    return;
+  }
+  u.orders.forEach(o=>{
+    content.innerHTML+=`
+    <div class="card">
+      ${o.product}<br>
+      الحالة: ${o.status}
+    </div>
+    `;
+  });
+}
+
+/* =======================
+   تعبئة الرصيد
+======================= */
+function walletPage(){
+  content.innerHTML=`
+  <h3>💳 تعبئة الرصيد</h3>
+  <p>الحد الأدنى: 5 USD</p>
+  <p>كود شام كاش:</p>
+  <b>29607b06505ee18f34a7fc5022404325</b>
+  <input type="number" id="amount" placeholder="المبلغ">
+  <input type="file" id="img" accept="image/*">
+  <button onclick="sendTopup()">إرسال</button>
+  `;
+}
+
+function sendTopup(){
+  let amount=document.getElementById("amount").value;
+  let img=document.getElementById("img").files[0];
+  if(amount<5){
+    alert("الحد الأدنى 5 دولار");
+    return;
+  }
+  if(!img){
+    alert("الصورة مطلوبة");
+    return;
+  }
+  content.innerHTML=`
+  <h3>⏳ تم إرسال الطلب</h3>
+  <p>يرجى الانتظار من دقيقة إلى 5 دقائق</p>
+  `;
+}
+  </script>
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Ahmed Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+margin:0;
+font-family:Tahoma,Arial;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:#fff;
+direction:rtl;
+}
 .hidden{display:none}
-.grid{
+header{
+background:#111;
+padding:10px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+.balance{
+background:#222;
+padding:6px 14px;
+border-radius:20px;
+font-weight:bold;
+}
+.container{padding:15px}
+.cards{
 display:grid;
-grid-template-columns:repeat(3,1fr);
+grid-template-columns:1fr 1fr;
 gap:15px;
 margin-top:20px;
 }
 .card{
 background:#1e1e1e;
+border-radius:15px;
 padding:25px;
-border-radius:12px;
 text-align:center;
 cursor:pointer;
 }
+.bottom{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+background:#111;
+display:flex;
+justify-content:space-around;
+padding:10px 0;
+}
+button,input,select{
+width:100%;
+padding:10px;
+margin:6px 0;
+border-radius:8px;
+border:none;
+}
+button{background:#00d4ff;font-weight:bold}
 .product{
 background:#222;
 padding:10px;
-border-radius:8px;
-margin:5px 0;
+border-radius:10px;
+margin:8px 0;
 }
-.admin-btn{
-background:red;
-color:white;
-margin-top:5px;
-}
+.adminBtn{background:red;color:#fff;margin-top:5px}
 </style>
 </head>
+
 <body>
 
+<header>
+<div>🛒 Ahmed Shop</div>
+<div class="balance">
+<span id="balTxt">الرصيد</span>:
+<span id="bal">0</span>
+<span id="cur">USD</span>
+</div>
+</header>
+
 <div class="container" id="auth">
-<h2>Ahmed Shop</h2>
-<input id="name" placeholder="Name">
-<input id="email" placeholder="Email">
-<input id="pass" type="password" placeholder="Password">
+<h3>تسجيل / إنشاء حساب</h3>
+<input id="name" placeholder="الاسم">
+<input id="email" placeholder="الإيميل">
+<input id="pass" type="password" placeholder="كلمة المرور">
 <select id="currency">
 <option value="USD">USD</option>
 <option value="TRY">TRY</option>
 <option value="SYP">SYP</option>
 </select>
-<button onclick="register()">Create Account</button>
-<button onclick="login()">Login</button>
+<button onclick="register()">إنشاء حساب</button>
+<button onclick="login()">تسجيل دخول</button>
 <p id="msg"></p>
 </div>
 
 <div class="container hidden" id="app">
-<h3 id="welcome"></h3>
-<p>Balance: <span id="balance"></span> <span id="cur"></span></p>
-<button onclick="logout()">Logout</button>
-
-<div class="grid">
-<div class="card" onclick="openSection('apps')">📱 Applications</div>
-<div class="card" onclick="openSection('games')">🎮 Games</div>
-<div class="card" onclick="openSection('topup')">💎 Game Top-Up</div>
+<div class="cards">
+<div class="card" onclick="openSection('games')">🎮<br>الألعاب</div>
+<div class="card" onclick="openSection('apps')">📱<br>التطبيقات</div>
+<div class="card" onclick="openSection('wallet')">💳<br>تعبئة الرصيد</div>
+<div class="card" onclick="openOrders()">📦<br>طلباتي</div>
+</div>
 </div>
 
-<div id="section"></div>
+<div class="container hidden" id="content"></div>
 
-<div id="adminPanel" class="hidden">
-<h3>Admin Panel</h3>
-<input id="pname" placeholder="Product name">
-<input id="pprice" type="number" placeholder="Price">
-<select id="pcat">
-<option value="apps">Applications</option>
-<option value="games">Games</option>
-<option value="topup">Game Top-Up</option>
-</select>
-<button onclick="addProduct()">Add Product</button>
+<div class="container hidden" id="settings">
+<h3>الإعدادات</h3>
+<button onclick="setLang('ar')">العربية</button>
+<button onclick="setLang('en')">English</button>
+<button onclick="changePass()">تغيير كلمة المرور</button>
+<p>الدعم: +9635022404</p>
 </div>
+
+<div class="bottom hidden" id="nav">
+<div onclick="home()">🏠</div>
+<div onclick="openOrders()">📦</div>
+<div onclick="openSettings()">⚙️</div>
+<div onclick="logout()">🚪</div>
 </div>
 
 <script>
-const adminEmail="wled49645@gmail.com";
+const admin="wled49645@gmail.com";
 
-function getUsers(){return JSON.parse(localStorage.getItem("users")||"{}")}
+/* مستخدمين */
+function users(){return JSON.parse(localStorage.getItem("users")||"{}")}
 function saveUsers(u){localStorage.setItem("users",JSON.stringify(u))}
 
+/* تسجيل */
 function register(){
-let u=getUsers();
-if(u[email.value]){msg.innerText="Account exists";return;}
+let u=users();
+if(u[email.value]){msg.innerText="الحساب موجود";return;}
 u[email.value]={name:name.value,pass:pass.value,currency:currency.value,balance:0};
 saveUsers(u);
-msg.innerText="Account created, login now";
+msg.innerText="تم إنشاء الحساب، سجل دخول";
 }
-
 function login(){
-let u=getUsers();
-if(!u[email.value]||u[email.value].pass!==pass.value){msg.innerText="Wrong data";return;}
+let u=users()[email.value];
+if(!u||u.pass!==pass.value){msg.innerText="بيانات خاطئة";return;}
 localStorage.setItem("current",email.value);
 loadApp();
 }
-
 function logout(){
 localStorage.removeItem("current");
 location.reload();
 }
 
+/* تحميل */
 function loadApp(){
-let email=localStorage.getItem("current");
-let u=getUsers()[email];
+let e=localStorage.getItem("current");
+let u=users()[e];
 auth.classList.add("hidden");
 app.classList.remove("hidden");
-welcome.innerText="Welcome "+u.name;
-balance.innerText=u.balance;
+nav.classList.remove("hidden");
+bal.innerText=u.balance;
 cur.innerText=u.currency;
-if(email===adminEmail)adminPanel.classList.remove("hidden");
 }
 
-function getProducts(){return JSON.parse(localStorage.getItem("products")||"[]")}
-function saveProducts(p){localStorage.setItem("products",JSON.stringify(p))}
-
-function addProduct(){
-let p=getProducts();
-p.push({name:pname.value,price:pprice.value,cat:pcat.value});
-saveProducts(p);
-openSection(pcat.value);
-}
-
-function deleteProduct(i){
-let p=getProducts();
-p.splice(i,1);
-saveProducts(p);
-openSection(currentCat);
-}
-
+/* أقسام */
 let currentCat="";
-
 function openSection(cat){
 currentCat=cat;
-let div=document.getElementById("section");
-div.innerHTML="<h3>"+cat.toUpperCase()+"</h3>";
-let p=getProducts();
+app.classList.add("hidden");
+content.classList.remove("hidden");
+content.innerHTML="<h3>"+cat+"</h3>";
+
+if(cat==="wallet"){
+content.innerHTML+=`
+<p>الحد الأدنى 5 USD</p>
+<p>كود شام كاش:</p>
+<b>29607b06505ee18f34a7fc5022404325</b>
+<input id="amount" type="number" placeholder="المبلغ">
+<input id="img" type="file" accept="image/*">
+<button onclick="sendTopup()">إرسال</button>`;
+return;
+}
+
+let p=JSON.parse(localStorage.getItem("products")||"[]");
 p.forEach((x,i)=>{
 if(x.cat===cat){
-div.innerHTML+=`
+content.innerHTML+=`
 <div class="product">
 ${x.name} - ${x.price}
-${localStorage.getItem("current")===adminEmail?
-`<button class="admin-btn" onclick="deleteProduct(${i})">Delete</button>`:""}
+<button onclick="buy('${x.name}')">شراء</button>
+${localStorage.getItem("current")===admin?
+`<button class="adminBtn" onclick="delProd(${i})">حذف</button>`:""}
 </div>`;
 }
 });
 
-if(cat==="topup"){
-div.innerHTML+=`
-<h4>Minimum transfer: 5 USD</h4>
-<p>Sham Cash Code:</p>
-<b>29607b06505ee18f34a7fc5022404325</b>
-<input id="amount" type="number" placeholder="Amount">
-<input id="img" type="file" accept="image/*">
-<button onclick="sendTopup()">Send Request</button>`;
+if(localStorage.getItem("current")===admin){
+content.innerHTML+=`
+<h4>إضافة منتج</h4>
+<input id="pn" placeholder="اسم المنتج">
+<input id="pp" type="number" placeholder="السعر">
+<button onclick="addProd()">إضافة</button>`;
 }
 }
 
+function home(){
+content.classList.add("hidden");
+settings.classList.add("hidden");
+app.classList.remove("hidden");
+}
+
+/* منتجات */
+function addProd(){
+let p=JSON.parse(localStorage.getItem("products")||"[]");
+p.push({name:pn.value,price:pp.value,cat:currentCat});
+localStorage.setItem("products",JSON.stringify(p));
+openSection(currentCat);
+}
+function delProd(i){
+let p=JSON.parse(localStorage.getItem("products")||"[]");
+p.splice(i,1);
+localStorage.setItem("products",JSON.stringify(p));
+openSection(currentCat);
+}
+
+/* شراء + طلبات */
+function buy(name){
+let o=JSON.parse(localStorage.getItem("orders")||"[]");
+o.push({user:localStorage.getItem("current"),name:name,status:"قيد التنفيذ"});
+localStorage.setItem("orders",JSON.stringify(o));
+alert("تم إنشاء الطلب");
+}
+function openOrders(){
+app.classList.add("hidden");
+settings.classList.add("hidden");
+content.classList.remove("hidden");
+content.innerHTML="<h3>طلباتي</h3>";
+let o=JSON.parse(localStorage.getItem("orders")||"[]");
+o.forEach((x,i)=>{
+if(x.user===localStorage.getItem("current")||localStorage.getItem("current")===admin){
+content.innerHTML+=`
+<div class="product">
+${x.name} - ${x.status}
+${localStorage.getItem("current")===admin?
+`<button onclick="setStatus(${i},'تم التنفيذ')">✔</button>
+<button onclick="setStatus(${i},'مرفوض')">✖</button>`:""}
+</div>`;
+}
+});
+}
+function setStatus(i,s){
+let o=JSON.parse(localStorage.getItem("orders"));
+o[i].status=s;
+localStorage.setItem("orders",JSON.stringify(o));
+openOrders();
+}
+
+/* تعبئة */
 function sendTopup(){
-let amount=document.getElementById("amount").value;
-let img=document.getElementById("img").files[0];
-if(amount<5){alert("Minimum is 5 USD");return;}
-if(!img){alert("Image required");return;}
-alert("Request sent for review");
+if(amount.value<5){alert("الحد الأدنى 5$");return;}
+if(!img.files[0]){alert("الصورة مطلوبة");return;}
+content.innerHTML=`
+<h3>تم إرسال طلب تعبئة الرصيد</h3>
+<p>يرجى الانتظار من دقيقة إلى 5 دقائق</p>`;
 }
 
+/* إعدادات */
+function openSettings(){
+app.classList.add("hidden");
+content.classList.add("hidden");
+settings.classList.remove("hidden");
+}
+function changePass(){
+let n=prompt("كلمة مرور جديدة");
+let u=users();
+u[localStorage.getItem("current")].pass=n;
+saveUsers(u);
+alert("تم التغيير");
+}
+
+/* لغة */
+function setLang(l){
+document.body.dir=l==="ar"?"rtl":"ltr";
+balTxt.innerText=l==="ar"?"الرصيد":"Balance";
+}
+
+/* تشغيل */
 if(localStorage.getItem("current"))loadApp();
 </script>
 
 </body>
-</html>
+</html>  
