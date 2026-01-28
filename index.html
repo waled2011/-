@@ -3,129 +3,153 @@
 <head>
 <meta charset="UTF-8">
 <title>متجر وليد</title>
-
 <style>
 body{
-  background:#111;
-  color:white;
-  font-family:Arial;
   margin:0;
-}
-
-header{
-  background:#ffc107;
-  color:black;
-  padding:15px;
+  font-family: Arial, sans-serif;
+  background:#0f172a;
+  color:white;
   text-align:center;
+}
+header{
+  background:#020617;
+  padding:15px;
   font-size:22px;
   font-weight:bold;
 }
-
-.card{
-  background:#1e1e1e;
-  margin:15px;
-  padding:15px;
-  border-radius:12px;
-}
-
-.card h3{
-  margin:0 0 10px 0;
-}
-
-button{
-  width:100%;
-  padding:12px;
-  background:#ffc107;
+nav button{
+  margin:5px;
+  padding:10px 15px;
   border:none;
+  border-radius:8px;
+  cursor:pointer;
+  background:#2563eb;
+  color:white;
+}
+section{
+  display:none;
+  padding:20px;
+}
+section.active{
+  display:block;
+}
+.card{
+  background:#020617;
+  margin:15px auto;
+  padding:15px;
   border-radius:10px;
-  font-size:16px;
+  max-width:300px;
+}
+input{
+  width:90%;
+  padding:10px;
+  margin:8px 0;
+  border-radius:6px;
+  border:none;
+}
+.buy{
+  background:#22c55e;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  color:black;
   font-weight:bold;
 }
 </style>
 </head>
 
-<body>function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+<body>
+
+<header>WALED SHOP</header>
+
+<nav>
+  <button onclick="showPage('home')">الرئيسية</button>
+  <button onclick="showPage('apps')">التطبيقات</button>
+  <button onclick="showPage('numbers')">الأرقام</button>
+  <button onclick="showPage('pay')">الدفع</button>
+</nav>
+
+<section id="home" class="active">
+  <h2>أهلاً بك 👋</h2>
+  <p>متجر وليد لبيع التطبيقات والخدمات</p>
+</section>
+
+<section id="apps">
+  <h2>التطبيقات</h2>
+  <div class="card">
+    <h3>Free Fire Diamonds</h3>
+    <p>السعر: 1.5$</p>
+    <button class="buy" onclick="sendOrder('Free Fire Diamonds','1.5$')">
+      شراء
+    </button>
+  </div>
+</section>
+
+<section id="numbers">
+  <h2>الأرقام</h2>
+  <div class="card">
+    <h3>رقم تفعيل</h3>
+    <p>السعر: 2$</p>
+    <button class="buy" onclick="sendOrder('رقم تفعيل','2$')">
+      شراء
+    </button>
+  </div>
+</section>
+
+<section id="pay">
+  <h2>الدفع عبر شام كاش</h2>
+  <p>رقم شام كاش:</p>
+  <h3>0941943914</h3>
+
+  <div class="card">
+    <h4>إرسال بيانات الدفع</h4>
+    <input id="name" placeholder="اسمك">
+    <input id="amount" placeholder="المبلغ">
+    <input id="code" placeholder="كود التحويل">
+    <button class="buy" onclick="sendPayment()">إرسال</button>
+  </div>
+</section>
+
+<script>
+function showPage(id){
+  document.querySelectorAll('section').forEach(s=>{
+    s.classList.remove('active');
+  });
   document.getElementById(id).classList.add('active');
 }
 
-/* ===== نظام الحساب ===== */
-function createAccount() {
-  const name = document.getElementById('username').value;
-  if (!name) return alert("اكتب اسم المستخدم");
-
-  let account = {
-    name: name,
-    power: 1,
-    code: Math.floor(100000 + Math.random() * 900000)
-  };
-
-  localStorage.setItem("account", JSON.stringify(account));
-  showAccount();
-}
-
-function showAccount() {
-  const acc = JSON.parse(localStorage.getItem("account"));
-  if (!acc) return;
-
-  document.getElementById("accountInfo").innerHTML =
-    `الاسم: ${acc.name}<br>
-     القوة: ${acc.power}<br>
-     كود الحساب: ${acc.code}`;
-}
-
-showAccount();
-
-/* ===== الدفع شام كاش ===== */
-function sendPayment() {
-  const amount = document.getElementById("amount").value;
-  const code = document.getElementById("code").value;
-  const note = document.getElementById("note").value;
-
-  if (!amount || !code) {
-    alert("يرجى إدخال المبلغ وكود الحساب");
-    return;
-  }
-
-  const shamCashNumber = "0941943914"; // رقم شام كاش الخاص بك
-  const whatsappNumber = "963941943914"; // ← غيّره إذا أردت رقم واتساب مختلف
-
-  const msg =
-`طلب دفع شام كاش
-📌 رقم شام كاش: ${shamCashNumber}
-💰 المبلغ: ${amount}
-🆔 كود الحساب: ${code}
-📝 ملاحظة: ${note}`;
-
-  window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`, "_blank");
-}
-
-<header>🔥 متجر وليد</header>
-
-<div <script>
 function sendOrder(product, price){
-  const phone = "963941943914"; // رقمك
-  const text =
-    "طلب جديد 🔔\n" +
+  const phone = "963941943914";
+  const msg =
+    "طلب جديد 🛒\n" +
     "المنتج: " + product + "\n" +
     "السعر: " + price;
 
   window.open(
-    "https://wa.me/" + phone + "?text=" + encodeURIComponent(text),
+    "https://wa.me/" + phone + "?text=" + encodeURIComponent(msg),
+    "_blank"
+  );
+}
+
+function sendPayment(){
+  const name = document.getElementById('name').value;
+  const amount = document.getElementById('amount').value;
+  const code = document.getElementById('code').value;
+
+  const phone = "963941943914";
+  const msg =
+    "دفع شام كاش 💰\n" +
+    "الاسم: " + name + "\n" +
+    "المبلغ: " + amount + "\n" +
+    "كود التحويل: " + code;
+
+  window.open(
+    "https://wa.me/" + phone + "?text=" + encodeURIComponent(msg),
     "_blank"
   );
 }
 </script>
-  </button>
-</div>
-
-<div class="card">
-  <h3>PUBG - 60 UC</h3>
-  <p>السعر: 0.99$</p>
-  <button onclick="alert('تم إرسال الطلب للإدارة')">
-    شراء
-  </button>
-</div>
 
 </body>
 </html>
