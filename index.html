@@ -102,11 +102,20 @@ function sendPayment() {
 
 <header>🔥 متجر وليد</header>
 
-<div class="card">
-  <h3>Free Fire - 100 Diamonds</h3>
-  <p>السعر: 1.5$</p>
-  <button onclick="alert('تم إرسال الطلب للإدارة')">
-    شراء
+<div <script>
+function sendOrder(product, price){
+  const phone = "963941943914"; // رقمك
+  const text =
+    "طلب جديد 🔔\n" +
+    "المنتج: " + product + "\n" +
+    "السعر: " + price;
+
+  window.open(
+    "https://wa.me/" + phone + "?text=" + encodeURIComponent(text),
+    "_blank"
+  );
+}
+</script>
   </button>
 </div>
 
