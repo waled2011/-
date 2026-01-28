@@ -42,4 +42,62 @@
     camera.position.set(0, 1.6, 5);
 
     const renderer = new THREE.WebGLRenderer({ antialias:true });
-    renderer.setSize(inner
+    renderer.setSize(innerWidth, innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
+    scene.add(light);
+
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(100,100),
+      new THREE.MeshStandardMaterial({ color:0x1f2937 })
+    );
+    ground.rotation.x = -Math.PI/2;
+    scene.add(ground);
+
+    let playerMat = new THREE.MeshStandardMaterial({ color:0x22c55e });
+    const player = new THREE.Mesh(new THREE.BoxGeometry(1,1.8,1), playerMat);
+    player.position.y = 0.9;
+    scene.add(player);
+
+    const bullets = [];
+    function shoot(){
+      const b = new THREE.Mesh(new THREE.SphereGeometry(0.05), new THREE.MeshBasicMaterial({color:0xffff00}));
+      b.position.copy(player.position);
+      b.velocity = new THREE.Vector3(0,0,-0.5);
+      scene.add(b);
+      bullets.push(b);
+    }
+    window.shoot = shoot;
+
+    function jump(){ player.position.y = 1.6; setTimeout(()=>player.position.y=0.9, 300); }
+    window.jump = jump;
+
+    function animate(){
+      requestAnimationFrame(animate);
+      bullets.forEach(b=> b.position.add(b.velocity));
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', ()=>{
+      camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    // نظام حساب بسيط (LocalStorage)
+    window.login = ()=>{
+      const u = document.getElementById('username').value || 'Guest';
+      localStorage.setItem('user', u);
+      document.getElementById('profile').innerText = `الملف الشخصي: ${u}`;
+    };
+    window.applySkin = ()=>{
+      const c = document.getElementById('skin').value;
+      playerMat.color.set(c);
+      localStorage.setItem('skin', c);
+    };
+
+    const saved = localStorage.getItem('skin'); if(saved) playerMat.color.set(saved);
+    const su = localStorage.getItem('user'); if(su) document.getElementById('profile').innerText = `الملف الشخصي: ${su}`;
+  </script></body>
+</html>
