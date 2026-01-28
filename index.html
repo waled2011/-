@@ -75,6 +75,13 @@ section.active{display:block}
   padding:20px;
   opacity:0.6;
 }
+.balance-box{
+  margin-top:15px;
+  padding:10px;
+  background:#020617;
+  border-radius:10px;
+  font-weight:bold;
+}
 </style>
 </head>
 
@@ -93,6 +100,11 @@ section.active{display:block}
 <section id="home" class="active">
   <h2>👋 مرحبًا بك</h2>
   <p>متجر وليد لبيع التطبيقات، الألعاب، والأرقام الجاهزة</p>
+
+  <!-- عرض الرصيد من الكود -->
+  <div class="balance-box">
+    رصيد الحساب: <span id="balance">---</span>
+  </div>
 </section>
 
 <!-- التطبيقات -->
@@ -156,8 +168,10 @@ section.active{display:block}
 </section>
 
 <script>
+/* ===== الإعدادات العامة ===== */
 const phone = "9647843466671";
 
+/* ===== التنقل ===== */
 function openPage(id){
   document.querySelectorAll('section').forEach(s=>{
     s.classList.remove('active');
@@ -165,6 +179,7 @@ function openPage(id){
   document.getElementById(id).classList.add('active');
 }
 
+/* ===== إرسال الطلب واتساب ===== */
 function sendOrder(product, price){
   const msg =
     "🛒 طلب جديد\n" +
@@ -176,6 +191,19 @@ function sendOrder(product, price){
     "_blank"
   );
 }
+
+/* ===== الكود الذي أرسلته أنت (مدمج) ===== */
+const response = {
+  status: "success",
+  data: {
+    balance: 123.45
+  }
+};
+
+console.log(response.data.balance);
+
+/* عرض الرصيد داخل الصفحة */
+document.getElementById("balance").textContent = response.data.balance + " $";
 </script>
 
 <div class="footer">
