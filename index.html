@@ -1,157 +1,119 @@
-
-</body><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>Ahmed Shop</title>
+<title>My Store</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <style>
 body{
   margin:0;
-  font-family:Tahoma;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  color:white;
+  font-family:Arial;
+  background:#f5f5f5;
 }
 .hidden{display:none}
-.center{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-}
-.box{
+header{
   background:#111;
-  padding:20px;
-  border-radius:12px;
-  width:320px;
-  box-shadow:0 0 20px rgba(0,0,0,.6);
+  color:white;
+  padding:15px;
+  text-align:center;
 }
-input,select,button,textarea{
-  width:100%;
-  margin:8px 0;
-  padding:10px;
-  border-radius:6px;
-  border:none;
-}
-button{
-  background:#00c6ff;
-  color:#000;
-  font-weight:bold;
-  cursor:pointer;
+.container{
+  padding:15px;
 }
 .grid{
   display:grid;
-  grid-template-columns:repeat(2,1fr);
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
   gap:15px;
 }
 .card{
-  background:#1c1c1c;
-  padding:20px;
+  background:white;
   border-radius:10px;
-  text-align:center;
+  padding:15px;
+  box-shadow:0 2px 8px rgba(0,0,0,.1);
+}
+button{
+  padding:10px;
+  border:none;
+  border-radius:6px;
+  background:#111;
+  color:white;
   cursor:pointer;
 }
-.top-left{
-  position:fixed;
-  top:10px;
-  left:10px;
-  background:#000;
-  padding:8px 12px;
-  border-radius:8px;
+input{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+}
+nav{
+  display:flex;
+  justify-content:space-around;
+  background:#222;
+  color:white;
+  padding:10px;
+}
+nav span{
+  cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
-<div id="balanceBox" class="top-left hidden">
-رصيدك: <span id="balance">0</span> $
-</div>
+<header>🛒 My Store</header>
 
 <!-- LOGIN -->
-<div id="login" class="center">
-  <div class="box">
-    <h3>تسجيل الدخول</h3>
-    <input id="email" placeholder="البريد الإلكتروني">
-    <input id="password" type="password" placeholder="كلمة المرور">
-    <button onclick="login()">دخول</button>
-    <hr>
-    <button onclick="showRegister()">إنشاء حساب</button>
-  </div>
+<div id="login" class="container">
+  <h3>تسجيل الدخول</h3>
+  <input id="email" placeholder="الإيميل">
+  <input id="password" type="password" placeholder="كلمة المرور">
+  <button onclick="login()">دخول</button>
+  <p onclick="showRegister()" style="cursor:pointer">إنشاء حساب</p>
 </div>
 
 <!-- REGISTER -->
-<div id="register" class="center hidden">
-  <div class="box">
-    <h3>إنشاء حساب</h3>
-    <input id="rname" placeholder="الاسم">
-    <input id="remail" placeholder="الإيميل">
-    <input id="rpassword" type="password" placeholder="كلمة المرور">
-    <select id="currency">
-      <option value="USD">دولار</option>
-      <option value="TRY">ليرة تركية</option>
-      <option value="SYP">ليرة سورية</option>
-    </select>
-    <button onclick="register()">إنشاء</button>
-  </div>
+<div id="register" class="container hidden">
+  <h3>إنشاء حساب</h3>
+  <input id="rname" placeholder="الاسم">
+  <input id="remail" placeholder="الإيميل">
+  <input id="rpassword" type="password" placeholder="كلمة المرور">
+  <button onclick="register()">إنشاء</button>
 </div>
 
 <!-- HOME -->
-<div id="home" class="center hidden">
-  <div class="box">
-    <div class="grid">
-      <div class="card" onclick="openSection('games')">🎮 الألعاب</div>
-      <div class="card" onclick="openSection('apps')">📱 التطبيقات</div>
-      <div class="card" onclick="openSection('topup')">💰 تعبئة الرصيد</div>
-      <div class="card" onclick="openSection('orders')">📦 الطلبات</div>
-      <div class="card" onclick="openSection('settings')">⚙️ الإعدادات</div>
-      <div class="card" onclick="logout()">🚪 خروج</div>
-    </div>
-  </div>
-</div>
+<div id="home" class="hidden">
+  <nav>
+    <span onclick="showProducts()">المتجر</span>
+    <span onclick="showOrders()">طلباتي</span>
+    <span onclick="logout()">خروج</span>
+  </nav>
 
-<!-- TOPUP -->
-<div id="topup" class="center hidden">
-  <div class="box">
-    <h3>تعبئة رصيد</h3>
-    <p>حوّل إلى:</p>
-    <b>29607b06505ee18f34a7fc5022404325</b>
-    <input id="amount" type="number" placeholder="المبلغ (>=5$)">
-    <input id="img" type="file" accept="image/*">
-    <button onclick="submitTopup()">إرسال</button>
-    <button onclick="back()">رجوع</button>
+  <div id="products" class="container">
+    <h3>المنتجات</h3>
+    <div id="productList" class="grid"></div>
   </div>
-</div>
 
-<!-- MESSAGE -->
-<div id="msg" class="center hidden">
-  <div class="box">
-    <h3>تم إرسال الطلب</h3>
-    <p>انتظر من 1 إلى 5 دقائق</p>
+  <div id="orders" class="container hidden">
+    <h3>طلباتي</h3>
+    <div id="orderList"></div>
   </div>
 </div>
 
 <script>
-// 🔥 ضع بيانات Firebase هنا
+// 🔥 Firebase config (غيّره)
 firebase.initializeApp({
   apiKey: "API_KEY",
   authDomain: "PROJECT.firebaseapp.com",
-  projectId: "PROJECT",
-  storageBucket: "PROJECT.appspot.com",
+  projectId: "PROJECT"
 });
 
 const auth=firebase.auth();
 const db=firebase.firestore();
-const storage=firebase.storage();
-
-const ADMIN="wled49645@gmail.com";
 
 function show(id){
   document.querySelectorAll("body>div").forEach(d=>d.classList.add("hidden"));
@@ -159,26 +121,30 @@ function show(id){
 }
 
 function showRegister(){show("register")}
-function back(){show("home")}
+function showHome(){show("home")}
+function showProducts(){
+  document.getElementById("products").classList.remove("hidden");
+  document.getElementById("orders").classList.add("hidden");
+}
+function showOrders(){
+  document.getElementById("orders").classList.remove("hidden");
+  document.getElementById("products").classList.add("hidden");
+}
 
 function register(){
-  const email=remail.value;
-  const pass=rpassword.value;
-  if(!email||!pass){alert("بيانات ناقصة");return}
-  auth.createUserWithEmailAndPassword(email,pass).then(u=>{
-    db.collection("users").doc(u.user.uid).set({
-      name:rname.value,
-      currency:currency.value,
-      balance:0,
-      role: email===ADMIN?"admin":"user"
+  auth.createUserWithEmailAndPassword(remail.value,rpassword.value)
+  .then(u=>{
+    return db.collection("users").doc(u.user.uid).set({
+      name:rname.value
     });
-    show("home");
-  }).catch(e=>alert(e.message));
+  })
+  .then(showHome)
+  .catch(e=>alert(e.message));
 }
 
 function login(){
   auth.signInWithEmailAndPassword(email.value,password.value)
-  .then(()=>show("home"))
+  .then(showHome)
   .catch(e=>alert(e.message));
 }
 
@@ -187,17 +153,61 @@ function logout(){
   show("login");
 }
 
-function openSection(id){
-  show(id);
+// منتجات تجريبية
+const products=[
+  {id:1,name:"منتج 1",price:10},
+  {id:2,name:"منتج 2",price:20},
+];
+
+function loadProducts(){
+  productList.innerHTML="";
+  products.forEach(p=>{
+    productList.innerHTML+=`
+      <div class="card">
+        <h4>${p.name}</h4>
+        <p>${p.price}$</p>
+        <button onclick="order('${p.name}')">شراء</button>
+      </div>`;
+  });
 }
 
-function submitTopup(){
-  const amt=+amount.value;
-  if(amt<5){alert("الحد الأدنى 5$");return}
-  if(!img.files[0]){alert("الصورة مطلوبة");return}
-  show("msg");
+function order(name){
+  const user=auth.currentUser;
+  if(!user)return;
+  db.collection("orders").add({
+    user:user.uid,
+    product:name,
+    status:"قيد التنفيذ",
+    date:new Date()
+  });
+  alert("تم إرسال الطلب");
 }
+
+function loadOrders(){
+  const user=auth.currentUser;
+  if(!user)return;
+  orderList.innerHTML="";
+  db.collection("orders")
+  .where("user","==",user.uid)
+  .onSnapshot(s=>{
+    orderList.innerHTML="";
+    s.forEach(d=>{
+      orderList.innerHTML+=`
+        <div class="card">
+          ${d.data().product} - ${d.data().status}
+        </div>`;
+    });
+  });
+}
+
+auth.onAuthStateChanged(u=>{
+  if(u){
+    showHome();
+    loadProducts();
+    loadOrders();
+  }
+});
 </script>
 
 </body>
-</html></html>
+</html>
