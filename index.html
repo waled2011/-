@@ -5,41 +5,19 @@
 <title>Best Store</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body{
-  margin:0;font-family:tahoma;
-  background:#0f172a;color:#fff
-}
-header{
-  background:#020617;padding:15px;
-  display:flex;justify-content:space-between;align-items:center
-}
-button{
-  background:#2563eb;color:#fff;
-  border:none;border-radius:8px;
-  padding:8px 14px;cursor:pointer
-}
-input,select,textarea{
-  width:100%;padding:8px;margin:5px 0;
-  border-radius:6px;border:none
-}
-.card{
-  background:#020617;border-radius:14px;
-  padding:15px;margin:15px
-}
-.products{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:15px;padding:10px
-}
-.product img{
-  width:100%;border-radius:10px
-}
+body{margin:0;font-family:tahoma;background:#0f172a;color:#fff}
+header{background:#020617;padding:15px;display:flex;justify-content:space-between;align-items:center}
+button{background:#2563eb;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer}
 .hidden{display:none}
-.badge{background:#16a34a;padding:4px 8px;border-radius:6px}
-.delete{background:#dc2626;margin-top:5px}
+section{padding:15px}
+.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px}
+.card{background:#020617;padding:12px;border-radius:14px}
+.card img{width:100%;border-radius:10px}
+.delete{background:#dc2626;margin-top:6px}
+.badge{background:#16a34a;padding:3px 7px;border-radius:6px;font-size:12px}
+input,select,textarea{width:100%;margin:5px 0;padding:7px;border-radius:6px;border:none}
 </style>
 </head>
-
 <body>
 
 <header>
@@ -47,20 +25,14 @@ input,select,textarea{
     <b>BEST STORE</b><br>
     <small>رصيدك: <span id="balance">0</span></small>
   </div>
-  <div id="userBox">
-    <button onclick="openLogin()">تسجيل الدخول</button>
+  <div>
+    <span id="userEmail"></span>
+    <button id="loginBtn">تسجيل الدخول Google</button>
+    <button id="logoutBtn" class="hidden">خروج</button>
   </div>
 </header>
 
-<!-- تسجيل الدخول -->
-<div id="loginBox" class="card hidden">
-  <h3>تسجيل الدخول</h3>
-  <input id="email" placeholder="اكتب الإيميل">
-  <button onclick="login()">دخول</button>
-</div>
-
-<!-- لوحة الأدمن -->
-<div id="adminPanel" class="card hidden">
+<section id="adminPanel" class="hidden">
   <h3>إضافة منتج</h3>
   <input id="pName" placeholder="اسم المنتج">
   <input id="pPrice" placeholder="السعر">
@@ -68,106 +40,114 @@ input,select,textarea{
     <option>تطبيقات</option>
     <option>أشياء</option>
   </select>
-  <textarea id="pDesc" placeholder="وصف المنتج"></textarea>
+  <textarea id="pDesc" placeholder="الوصف"></textarea>
   <input id="pQty" placeholder="الرصيد / الكمية">
   <input type="file" id="pImg">
   <button onclick="addProduct()">إضافة المنتج</button>
-</div>
+</section>
 
-<!-- المنتجات -->
-<div class="products" id="products"></div>
+<section class="products" id="products"></section>
 
-<!-- تعبئة الرصيد -->
-<div class="card">
+<section class="card">
   <h3>تعبئة الرصيد عبر شام كاش</h3>
-  <p>التحويل إلى الحساب:</p>
-  <b>29607b06505ee18f34a7fc5022404325</b>
+  <p>الحساب: <b>29607b06505ee18f34a7fc5022404325</b></p>
   <input id="chargeAmount" placeholder="المبلغ">
   <input type="file" id="chargeImg">
-  <button onclick="charge()">إرسال طلب التعبئة</button>
-</div>
+  <button onclick="sendCharge()">إرسال طلب التعبئة</button>
+</section>
 
-<script>
-const ADMIN="wled49645@gmail.com";
-let user=localStorage.getItem("user");
-let balance=parseInt(localStorage.getItem("balance")||0);
-let products=JSON.parse(localStorage.getItem("products")||"[]");
+<script type="module">
+/* 🔥 ضع بيانات Firebase هنا */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
-balanceSpan.innerText=balance;
+const firebaseConfig = {
+  apiKey: "PUT_API_KEY",
+  authDomain: "PUT_AUTH_DOMAIN",
+  projectId: "PUT_PROJECT_ID",
+  storageBucket: "PUT_STORAGE_BUCKET",
+  messagingSenderId: "PUT_SENDER_ID",
+  appId: "PUT_APP_ID"
+};
 
-if(user){
-  userBox.innerHTML=user;
-  if(user===ADMIN) adminPanel.classList.remove("hidden");
+const ADMIN = "wled49645@gmail.com";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+const provider = new GoogleAuthProvider();
+
+loginBtn.onclick = () => signInWithPopup(auth, provider);
+logoutBtn.onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, async user => {
+  if(!user) return;
+  userEmail.innerText = user.email;
+  loginBtn.classList.add("hidden");
+  logoutBtn.classList.remove("hidden");
+
+  const userRef = doc(db,"users",user.uid);
+  const snap = await getDoc(userRef);
+  if(!snap.exists()) await setDoc(userRef,{balance:0});
+  balance.innerText = (await getDoc(userRef)).data().balance;
+
+  if(user.email === ADMIN) adminPanel.classList.remove("hidden");
+  loadProducts();
+});
+
+async function addProduct(){
+  const file = pImg.files[0];
+  const imgRef = ref(storage,"products/"+Date.now());
+  await uploadBytes(imgRef,file);
+  const url = await getDownloadURL(imgRef);
+
+  await addDoc(collection(db,"products"),{
+    name:pName.value,price:pPrice.value,cat:pCat.value,
+    desc:pDesc.value,qty:pQty.value,img:url
+  });
+  loadProducts();
 }
 
-function openLogin(){
-  loginBox.classList.toggle("hidden");
-}
-
-function login(){
-  let e=email.value;
-  if(!e)return;
-  user=e;
-  localStorage.setItem("user",e);
-  userBox.innerHTML=e;
-  loginBox.classList.add("hidden");
-  if(e===ADMIN) adminPanel.classList.remove("hidden");
-}
-
-function addProduct(){
-  let file=pImg.files[0];
-  let reader=new FileReader();
-  reader.onload=()=>{
-    products.push({
-      name:pName.value,
-      price:pPrice.value,
-      cat:pCat.value,
-      desc:pDesc.value,
-      qty:pQty.value,
-      img:reader.result
-    });
-    localStorage.setItem("products",JSON.stringify(products));
-    render();
-  };
-  reader.readAsDataURL(file);
-}
-
-function deleteProduct(i){
-  products.splice(i,1);
-  localStorage.setItem("products",JSON.stringify(products));
-  render();
-}
-
-function render(){
-  productsBox.innerHTML="";
-  products.forEach((p,i)=>{
-    productsBox.innerHTML+=`
-    <div class="card product">
+async function loadProducts(){
+  products.innerHTML="";
+  const q = await getDocs(collection(db,"products"));
+  q.forEach(d=>{
+    const p=d.data();
+    products.innerHTML+=`
+    <div class="card">
       <img src="${p.img}">
       <h4>${p.name}</h4>
       <span class="badge">${p.cat}</span>
       <p>${p.desc}</p>
       <p>الرصيد: ${p.qty}</p>
       <b>${p.price}</b>
-      <input placeholder="ID الخاص بك">
-      <textarea placeholder="وصف إضافي"></textarea>
-      ${user===ADMIN?`<button class="delete" onclick="deleteProduct(${i})">حذف</button>`:""}
+      ${auth.currentUser?.email===ADMIN?
+      `<button class="delete" onclick="deleteProduct('${d.id}')">حذف</button>`:""}
     </div>`;
   });
 }
 
-function charge(){
-  let file=chargeImg.files[0];
-  if(!file)return alert("أضف صورة التحويل");
-  let amount=parseInt(chargeAmount.value);
-  if(!amount)return;
-  balance+=amount;
-  localStorage.setItem("balance",balance);
-  balanceSpan.innerText=balance;
-  alert("تم إرسال الطلب وسيتم المراجعة");
-}
+window.deleteProduct = async id =>{
+  await deleteDoc(doc(db,"products",id));
+  loadProducts();
+};
 
-render();
+async function sendCharge(){
+  const file=chargeImg.files[0];
+  const refImg=ref(storage,"charges/"+Date.now());
+  await uploadBytes(refImg,file);
+  const url=await getDownloadURL(refImg);
+
+  await addDoc(collection(db,"charges"),{
+    uid:auth.currentUser.uid,
+    amount:chargeAmount.value,
+    img:url
+  });
+  alert("تم إرسال طلب التعبئة");
+}
 </script>
 
 </body>
