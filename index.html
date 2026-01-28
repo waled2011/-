@@ -10,24 +10,24 @@
 body{
   margin:0;
   min-height:100vh;
-  background:radial-gradient(circle at top,#ff7a18,#000);
+  background:linear-gradient(135deg,#000,#111);
   color:#fff;
-  display:flex;
-  justify-content:center;
-  align-items:center;
 }
 .hidden{display:none}
+
 .container{
-  width:100%;
   max-width:420px;
-  padding:15px;
+  margin:auto;
+  padding:10px;
 }
+
 .card{
-  background:#111c;
+  background:#1a1a1a;
   border-radius:14px;
   padding:15px;
   margin:10px 0;
 }
+
 input,button{
   width:100%;
   padding:12px;
@@ -35,57 +35,60 @@ input,button{
   border-radius:10px;
   border:none;
 }
+
 button{
   background:#ff7a18;
-  color:#000;
   font-weight:bold;
 }
+
 .top{
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
-.balance{
-  font-weight:bold;
-}
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
-.box{
-  background:#222;
-  padding:20px;
-  border-radius:14px;
-  text-align:center;
-}
-.menu{
-  position:relative;
-}
+
+.balance{font-weight:bold}
+
 .menuBtn{
   background:none;
   color:#fff;
   font-size:22px;
 }
+
 .menuList{
   position:absolute;
-  right:0;
+  right:10px;
   background:#222;
   border-radius:10px;
-  overflow:hidden;
 }
+
 .menuList div{
   padding:10px;
   border-bottom:1px solid #333;
 }
-.menuList div:last-child{border:none}
+
+.bottom{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#111;
+  display:flex;
+  justify-content:space-around;
+  padding:10px 0;
+}
+
+.bottom div{
+  text-align:center;
+  font-size:14px;
+}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<!-- تسجيل -->
+<!-- AUTH -->
 <div id="auth" class="card">
   <h2>Gem Shop</h2>
   <input id="email" placeholder="البريد الإلكتروني">
@@ -94,118 +97,103 @@ button{
   <button onclick="register()">إنشاء حساب</button>
 </div>
 
-<!-- التطبيق -->
+<!-- APP -->
 <div id="app" class="hidden">
 
-  <div class="top">
-    <div class="balance" onclick="openRecharge()">
-      💰 <span id="balance">0</span>$
-    </div>
-    <div class="menu">
-      <button class="menuBtn" onclick="toggleMenu()">⋮</button>
-      <div id="menuList" class="menuList hidden">
-        <div onclick="changePassword()">تغيير كلمة المرور</div>
-        <div onclick="logout()">تسجيل الخروج</div>
-      </div>
+<div class="top">
+  <div class="balance">💰 <span id="balance">0</span>$</div>
+  <div>
+    <button class="menuBtn" onclick="toggleMenu()">⋮</button>
+    <div id="menu" class="menuList hidden">
+      <div onclick="changePassword()">تغيير كلمة المرور</div>
+      <div onclick="changeTheme()">تغيير الخلفية</div>
+      <div onclick="logout()">تسجيل الخروج</div>
     </div>
   </div>
+</div>
 
-  <div class="grid">
-    <div class="box" onclick="openGames()">🎮 الألعاب</div>
-    <div class="box" onclick="openApps()">📱 التطبيقات</div>
-    <div class="box" onclick="openRecharge()">💳 تعبئة الرصيد</div>
-    <div class="box" onclick="openOrders()">📦 طلباتي</div>
-  </div>
-
-  <div id="content"></div>
+<div id="content"></div>
 
 </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom hidden" id="bottomNav">
+  <div onclick="home()">🏠<br>الرئيسية</div>
+  <div onclick="orders()">📦<br>طلباتي</div>
 </div>
 
 <script>
-const ADMIN_EMAIL="wled49645@gmail.com";
-const ADMIN_PASSWORD="wled12123456";
+const ADMIN="wled49645@gmail.com";
+let users=JSON.parse(localStorage.users||"[]");
 let user=null;
+let theme=0;
 
-function save(){localStorage.setItem("users",JSON.stringify(users))}
-let users=JSON.parse(localStorage.getItem("users")||"[]");
+function save(){localStorage.users=JSON.stringify(users)}
 
-if(!users.find(u=>u.email===ADMIN_EMAIL)){
-  users.push({email:ADMIN_EMAIL,password:ADMIN_PASSWORD,balance:0,orders:[],admin:true});
-  save();
+if(!users.find(u=>u.email===ADMIN)){
+ users.push({email:ADMIN,password:"wled12123456",balance:100,orders:[],admin:true});
+ save();
 }
 
 function register(){
-  if(users.find(u=>u.email===email.value))return alert("الحساب موجود");
-  users.push({email:email.value,password:password.value,balance:0,orders:[],admin:false});
-  save(); alert("تم إنشاء الحساب");
+ if(users.find(u=>u.email===email.value))return alert("موجود");
+ users.push({email:email.value,password:password.value,balance:0,orders:[],admin:false});
+ save(); alert("تم");
 }
 
 function login(){
-  user=users.find(u=>u.email===email.value&&u.password===password.value);
-  if(!user)return alert("بيانات خاطئة");
-  auth.classList.add("hidden");
-  app.classList.remove("hidden");
-  update();
+ user=users.find(u=>u.email===email.value&&u.password===password.value);
+ if(!user)return alert("خطأ");
+ auth.classList.add("hidden");
+ app.classList.remove("hidden");
+ bottomNav.classList.remove("hidden");
+ home();
+ update();
+}
+
+function update(){balance.innerText=user.balance}
+
+function home(){
+ content.innerHTML=`
+ <div class="card">
+ <button onclick="buy('100 جوهرة',0.5)">100 جوهرة - 0.5$</button>
+ <button onclick="buy('200 جوهرة',1)">200 جوهرة - 1$</button>
+ </div>`;
+}
+
+function buy(name,price){
+ if(user.balance<price)return alert("رصيد غير كاف");
+ user.balance-=price;
+ user.orders.push({name,status:"قيد التنفيذ"});
+ save(); update();
+ alert("قيد الشحن من 1 إلى 5 دقائق");
+}
+
+function orders(){
+ content.innerHTML=user.orders.length
+ ? user.orders.map(o=>`<div class="card">${o.name}<br>${o.status}</div>`).join("")
+ : "<div class='card'>لا يوجد طلبات</div>";
+}
+
+function toggleMenu(){menu.classList.toggle("hidden")}
+
+function changePassword(){
+ let p=prompt("كلمة جديدة");
+ if(!p)return;
+ user.password=p; save(); alert("تم");
+}
+
+function changeTheme(){
+ theme=(theme+1)%3;
+ document.body.style.background=[
+ "linear-gradient(#fff,#000)",
+ "linear-gradient(#900,#000)",
+ "linear-gradient(#005,#000)"
+ ][theme];
 }
 
 function logout(){location.reload()}
-
-function update(){
-  balance.innerText=user.balance;
-  content.innerHTML="";
-}
-
-function toggleMenu(){menuList.classList.toggle("hidden")}
-
-function openGames(){
-  content.innerHTML=`
-  <div class="card">
-    <h3>Free Fire</h3>
-    <button onclick="order('100 جوهرة - Free Fire')">100 جوهرة - $0.5</button>
-    <button onclick="order('200 جوهرة - Free Fire')">200 جوهرة - $1</button>
-  </div>
-  <div class="card">
-    <h3>PUBG</h3>
-    <button onclick="order('60 UC - PUBG')">60 UC - $0.5</button>
-    <button onclick="order('120 UC - PUBG')">120 UC - $1</button>
-  </div>`;
-}
-
-function openApps(){
-  content.innerHTML=`<div class="card">📺 شاهد VIP (وهمي)</div>`;
-}
-
-function order(p){
-  const id=prompt("أدخل ID");
-  user.orders.push({product:p,id,status:"قيد التنفيذ"});
-  save();
-  alert("قيد الشحن من دقيقة إلى 5 دقائق");
-}
-
-function openOrders(){
-  content.innerHTML=user.orders.length
-    ? user.orders.map(o=>`<div class="card">${o.product}<br>${o.status}</div>`).join("")
-    : "<div class='card'>لا يوجد طلبات</div>";
-}
-
-function openRecharge(){
-  content.innerHTML=`
-  <div class="card">
-    <p>شام كاش</p>
-    <p>الحد الأدنى 5$</p>
-    <p>29607b06505ee18f34a7fc5022404325</p>
-    <button onclick="alert('تم الإرسال، انتظر من 1 إلى 5 دقائق')">تم التحويل</button>
-  </div>`;
-}
-
-function changePassword(){
-  const p=prompt("كلمة المرور الجديدة");
-  if(!p)return;
-  user.password=p;
-  save();
-  alert("تم التغيير");
-}
 </script>
 </body>
 </html>
