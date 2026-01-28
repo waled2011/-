@@ -4,376 +4,6 @@
 <meta charset="UTF-8">
 <title>Ahmed Shop</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body{
-margin:0;
-font-family:Tahoma, Arial;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-color:#fff;
-direction:rtl;
-}
-
-.hidden{display:none}
-
-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:12px;
-background:#111;
-}
-
-.balance{
-background:#222;
-padding:6px 12px;
-border-radius:20px;
-font-weight:bold;
-}
-
-.container{
-padding:15px;
-}
-
-.cards{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:15px;
-margin-top:20px;
-}
-
-.card{
-background:#1e1e1e;
-border-radius:15px;
-padding:20px;
-text-align:center;
-cursor:pointer;
-transition:.3s;
-}
-
-.card:hover{transform:scale(1.03)}
-
-.card img{
-width:100%;
-border-radius:12px;
-}
-
-.section-title{
-margin-top:20px;
-font-size:18px;
-font-weight:bold;
-}
-
-.bottom-nav{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:#111;
-display:flex;
-justify-content:space-around;
-padding:10px 0;
-}
-
-.bottom-nav div{
-cursor:pointer;
-font-size:14px;
-}
-
-button,input,select{
-width:100%;
-padding:10px;
-margin:6px 0;
-border-radius:8px;
-border:none;
-}
-
-button{
-background:#00d4ff;
-font-weight:bold;
-cursor:pointer;
-}
-</style>
-</head>
-
-<body>
-
-<header>
-<div id="logo">🛒 Ahmed Shop</div>
-<div class="balance">
-<span id="balanceText">الرصيد</span>:
-<span id="balance">0</span>
-<span id="currency">USD</span>
-</div>
-</header>
-
-<div class="container" id="home">
-
-<div class="cards">
-<div class="card" onclick="openSection('games')">
-🎮<br>
-<span data-lang="games">قسم الألعاب</span>
-</div>
-
-<div class="card" onclick="openSection('apps')">
-📱<br>
-<span data-lang="apps">قسم التطبيقات</span>
-</div>
-
-<div class="card" onclick="openSection('topup')">
-💎<br>
-<span data-lang="topup">شحن الألعاب</span>
-</div>
-
-<div class="card" onclick="openSection('wallet')">
-💳<br>
-<span data-lang="wallet">تعبئة الرصيد</span>
-</div>
-</div>
-
-</div>
-
-<div class="container hidden" id="content"></div>
-
-<div class="container hidden" id="settings">
-<h3 data-lang="settings">الإعدادات</h3>
-
-<button onclick="setLang('ar')">🇸🇦 العربية</button>
-<button onclick="setLang('en')">🇺🇸 English</button>
-
-<button onclick="changePassword()" data-lang="changePass">تغيير كلمة المرور</button>
-
-<p data-lang="support">الدعم: +9635022404</p>
-</div>
-
-<div class="bottom-nav">
-<div onclick="goHome()">🏠</div>
-<div onclick="openOrders()">📦</div>
-<div onclick="openSettings()">⚙️</div>
-<div onclick="logout()">🚪</div>
-</div>
-
-<script>
-/* نظام اللغة */
-const translations={
-ar:{
-games:"قسم الألعاب",
-apps:"قسم التطبيقات",
-topup:"شحن الألعاب",
-wallet:"تعبئة الرصيد",
-settings:"الإعدادات",
-changePass:"تغيير كلمة المرور",
-support:"الدعم: +9635022404",
-balance:"الرصيد"
-},
-en:{
-games:"Games",
-apps:"Applications",
-topup:"Game Top-Up",
-wallet:"Wallet",
-settings:"Settings",
-changePass:"Change Password",
-support:"Support: +9635022404",
-balance:"Balance"
-}
-};
-
-function setLang(lang){
-localStorage.setItem("lang",lang);
-applyLang();
-}
-
-function applyLang(){
-let lang=localStorage.getItem("lang")||"ar";
-document.body.dir = lang==="ar"?"rtl":"ltr";
-document.querySelectorAll("[data-lang]").forEach(el=>{
-el.innerText = translations[lang][el.dataset.lang];
-});
-document.getElementById("balanceText").innerText =
-translations[lang].balance;
-}
-
-applyLang();
-
-/* تنقل */
-function goHome(){
-content.classList.add("hidden");
-home.classList.remove("hidden");
-settings.classList.add("hidden");
-}
-
-function openSettings(){
-home.classList.add("hidden");
-content.classList.add("hidden");
-settings.classList.remove("hidden");
-}
-</script>
-
-</body>
-</html>
-<script>
-/* =======================
-   المستخدم + الرصيد
-======================= */
-const adminEmail = "wled49645@gmail.com";
-
-function getUser(){
-  return JSON.parse(localStorage.getItem("user")||"{}");
-}
-function saveUser(u){
-  localStorage.setItem("user",JSON.stringify(u));
-}
-if(!localStorage.getItem("user")){
-  saveUser({
-    email:"guest",
-    balance:0,
-    currency:"USD",
-    orders:[]
-  });
-}
-function updateBalanceUI(){
-  let u=getUser();
-  document.getElementById("balance").innerText=u.balance;
-  document.getElementById("currency").innerText=u.currency;
-}
-updateBalanceUI();
-
-/* =======================
-   المنتجات
-======================= */
-function getProducts(){
-  return JSON.parse(localStorage.getItem("products")||"[]");
-}
-function saveProducts(p){
-  localStorage.setItem("products",JSON.stringify(p));
-}
-
-/* منتجات افتراضية */
-if(getProducts().length===0){
-  saveProducts([
-    {id:1,name:"شحن PUBG",price:10,cat:"games"},
-    {id:2,name:"شحن Free Fire",price:5,cat:"games"},
-    {id:3,name:"اشتراك Netflix",price:7,cat:"apps"}
-  ]);
-}
-
-/* =======================
-   فتح الأقسام
-======================= */
-function openSection(cat){
-  home.classList.add("hidden");
-  settings.classList.add("hidden");
-  content.classList.remove("hidden");
-  content.innerHTML = "";
-
-  if(cat==="wallet"){
-    walletPage();
-    return;
-  }
-
-  let title={
-    games:"🎮 قسم الألعاب",
-    apps:"📱 قسم التطبيقات",
-    topup:"💎 شحن الألعاب"
-  };
-  content.innerHTML += `<h3>${title[cat]}</h3>`;
-
-  let products=getProducts();
-  products.forEach(p=>{
-    if(p.cat===cat){
-      content.innerHTML+=`
-      <div class="card">
-        <b>${p.name}</b><br>
-        السعر: ${p.price} ${getUser().currency}<br>
-        <button onclick="buyProduct(${p.id})">شراء</button>
-      </div>
-      `;
-    }
-  });
-}
-
-/* =======================
-   شراء منتج
-======================= */
-function buyProduct(id){
-  let u=getUser();
-  let p=getProducts().find(x=>x.id===id);
-  if(u.balance < p.price){
-    alert("رصيدك غير كافٍ");
-    return;
-  }
-  u.balance -= p.price;
-  u.orders.push({
-    product:p.name,
-    status:"قيد التنفيذ"
-  });
-  saveUser(u);
-  updateBalanceUI();
-  alert("تم إنشاء الطلب ✔");
-}
-
-/* =======================
-   الطلبات
-======================= */
-function openOrders(){
-  home.classList.add("hidden");
-  settings.classList.add("hidden");
-  content.classList.remove("hidden");
-
-  let u=getUser();
-  content.innerHTML="<h3>📦 طلباتي</h3>";
-  if(u.orders.length===0){
-    content.innerHTML+="لا يوجد طلبات";
-    return;
-  }
-  u.orders.forEach(o=>{
-    content.innerHTML+=`
-    <div class="card">
-      ${o.product}<br>
-      الحالة: ${o.status}
-    </div>
-    `;
-  });
-}
-
-/* =======================
-   تعبئة الرصيد
-======================= */
-function walletPage(){
-  content.innerHTML=`
-  <h3>💳 تعبئة الرصيد</h3>
-  <p>الحد الأدنى: 5 USD</p>
-  <p>كود شام كاش:</p>
-  <b>29607b06505ee18f34a7fc5022404325</b>
-  <input type="number" id="amount" placeholder="المبلغ">
-  <input type="file" id="img" accept="image/*">
-  <button onclick="sendTopup()">إرسال</button>
-  `;
-}
-
-function sendTopup(){
-  let amount=document.getElementById("amount").value;
-  let img=document.getElementById("img").files[0];
-  if(amount<5){
-    alert("الحد الأدنى 5 دولار");
-    return;
-  }
-  if(!img){
-    alert("الصورة مطلوبة");
-    return;
-  }
-  content.innerHTML=`
-  <h3>⏳ تم إرسال الطلب</h3>
-  <p>يرجى الانتظار من دقيقة إلى 5 دقائق</p>
-  `;
-}
-  </script>
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-<meta charset="UTF-8">
-<title>Ahmed Shop</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{
 margin:0;
@@ -410,16 +40,6 @@ padding:25px;
 text-align:center;
 cursor:pointer;
 }
-.bottom{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:#111;
-display:flex;
-justify-content:space-around;
-padding:10px 0;
-}
 button,input,select{
 width:100%;
 padding:10px;
@@ -435,6 +55,16 @@ border-radius:10px;
 margin:8px 0;
 }
 .adminBtn{background:red;color:#fff;margin-top:5px}
+.nav{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+background:#111;
+display:flex;
+justify-content:space-around;
+padding:10px 0;
+}
 </style>
 </head>
 
@@ -449,6 +79,7 @@ margin:8px 0;
 </div>
 </header>
 
+<!-- تسجيل -->
 <div class="container" id="auth">
 <h3>تسجيل / إنشاء حساب</h3>
 <input id="name" placeholder="الاسم">
@@ -464,17 +95,20 @@ margin:8px 0;
 <p id="msg"></p>
 </div>
 
-<div class="container hidden" id="app">
+<!-- الرئيسية -->
+<div class="container hidden" id="home">
 <div class="cards">
-<div class="card" onclick="openSection('games')">🎮<br>الألعاب</div>
-<div class="card" onclick="openSection('apps')">📱<br>التطبيقات</div>
-<div class="card" onclick="openSection('wallet')">💳<br>تعبئة الرصيد</div>
-<div class="card" onclick="openOrders()">📦<br>طلباتي</div>
+<div class="card" onclick="openSection('games')">🎮 الألعاب</div>
+<div class="card" onclick="openSection('apps')">📱 التطبيقات</div>
+<div class="card" onclick="openWallet()">💳 تعبئة الرصيد</div>
+<div class="card" onclick="openOrders()">📦 الطلبات</div>
 </div>
 </div>
 
+<!-- محتوى -->
 <div class="container hidden" id="content"></div>
 
+<!-- الإعدادات -->
 <div class="container hidden" id="settings">
 <h3>الإعدادات</h3>
 <button onclick="setLang('ar')">العربية</button>
@@ -483,8 +117,8 @@ margin:8px 0;
 <p>الدعم: +9635022404</p>
 </div>
 
-<div class="bottom hidden" id="nav">
-<div onclick="home()">🏠</div>
+<div class="nav hidden" id="nav">
+<div onclick="goHome()">🏠</div>
 <div onclick="openOrders()">📦</div>
 <div onclick="openSettings()">⚙️</div>
 <div onclick="logout()">🚪</div>
@@ -521,32 +155,32 @@ function loadApp(){
 let e=localStorage.getItem("current");
 let u=users()[e];
 auth.classList.add("hidden");
-app.classList.remove("hidden");
+home.classList.remove("hidden");
 nav.classList.remove("hidden");
 bal.innerText=u.balance;
 cur.innerText=u.currency;
 }
 
+/* تنقل */
+function hideAll(){
+home.classList.add("hidden");
+content.classList.add("hidden");
+settings.classList.add("hidden");
+}
+function goHome(){
+hideAll();
+home.classList.remove("hidden");
+}
+
 /* أقسام */
 let currentCat="";
 function openSection(cat){
+hideAll();
 currentCat=cat;
-app.classList.add("hidden");
 content.classList.remove("hidden");
 content.innerHTML="<h3>"+cat+"</h3>";
-
-if(cat==="wallet"){
-content.innerHTML+=`
-<p>الحد الأدنى 5 USD</p>
-<p>كود شام كاش:</p>
-<b>29607b06505ee18f34a7fc5022404325</b>
-<input id="amount" type="number" placeholder="المبلغ">
-<input id="img" type="file" accept="image/*">
-<button onclick="sendTopup()">إرسال</button>`;
-return;
-}
-
 let p=JSON.parse(localStorage.getItem("products")||"[]");
+
 p.forEach((x,i)=>{
 if(x.cat===cat){
 content.innerHTML+=`
@@ -568,12 +202,6 @@ content.innerHTML+=`
 }
 }
 
-function home(){
-content.classList.add("hidden");
-settings.classList.add("hidden");
-app.classList.remove("hidden");
-}
-
 /* منتجات */
 function addProd(){
 let p=JSON.parse(localStorage.getItem("products")||"[]");
@@ -588,18 +216,19 @@ localStorage.setItem("products",JSON.stringify(p));
 openSection(currentCat);
 }
 
-/* شراء + طلبات */
+/* شراء */
 function buy(name){
 let o=JSON.parse(localStorage.getItem("orders")||"[]");
 o.push({user:localStorage.getItem("current"),name:name,status:"قيد التنفيذ"});
 localStorage.setItem("orders",JSON.stringify(o));
 alert("تم إنشاء الطلب");
 }
+
+/* الطلبات */
 function openOrders(){
-app.classList.add("hidden");
-settings.classList.add("hidden");
+hideAll();
 content.classList.remove("hidden");
-content.innerHTML="<h3>طلباتي</h3>";
+content.innerHTML="<h3>الطلبات</h3>";
 let o=JSON.parse(localStorage.getItem("orders")||"[]");
 o.forEach((x,i)=>{
 if(x.user===localStorage.getItem("current")||localStorage.getItem("current")===admin){
@@ -621,6 +250,17 @@ openOrders();
 }
 
 /* تعبئة */
+function openWallet(){
+hideAll();
+content.classList.remove("hidden");
+content.innerHTML=`
+<h3>تعبئة الرصيد</h3>
+<p>الحد الأدنى 5 USD</p>
+<b>29607b06505ee18f34a7fc5022404325</b>
+<input id="amount" type="number" placeholder="المبلغ">
+<input id="img" type="file" accept="image/*">
+<button onclick="sendTopup()">إرسال</button>`;
+}
 function sendTopup(){
 if(amount.value<5){alert("الحد الأدنى 5$");return;}
 if(!img.files[0]){alert("الصورة مطلوبة");return;}
@@ -631,8 +271,7 @@ content.innerHTML=`
 
 /* إعدادات */
 function openSettings(){
-app.classList.add("hidden");
-content.classList.add("hidden");
+hideAll();
 settings.classList.remove("hidden");
 }
 function changePass(){
@@ -654,4 +293,4 @@ if(localStorage.getItem("current"))loadApp();
 </script>
 
 </body>
-</html>  
+</html>
