@@ -3,181 +3,128 @@
 <head>
 <meta charset="UTF-8">
 <title>Best Store</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body{margin:0;font-family:Arial;background:#f5f5f5}
-header{background:#000;color:#fff;padding:10px;display:flex;justify-content:space-between;align-items:center}
-button{background:#000;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;margin:2px}
-.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:15px;padding:15px}
-.product{background:#fff;padding:10px;border-radius:8px}
-.product img{width:100%;height:140px;object-fit:cover;border-radius:6px}
-.box{background:#fff;padding:15px;border-radius:8px;margin:15px}
+body{font-family:tahoma;background:#111;color:#fff;margin:0}
+header{background:#000;padding:15px;display:flex;justify-content:space-between;align-items:center}
+button{background:#00c3ff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer}
+input,select,textarea{width:100%;margin:5px 0;padding:6px}
 .hidden{display:none}
-input,select,textarea{width:100%;padding:7px;margin:5px 0}
-hr{margin:10px 0}
+.card{background:#1c1c1c;margin:10px;padding:10px;border-radius:8px}
+img{max-width:100%;border-radius:6px}
 </style>
 </head>
-
 <body>
 
 <header>
   <b>BEST STORE</b>
-  <div>
-    <span id="userName"></span>
-    <button id="loginBtn" onclick="showLogin()">تسجيل الدخول</button>
-    <button onclick="showSection('charge')">تعبئة رصيد</button>
+  <div id="userBox">
+    <button onclick="openLogin()">تسجيل الدخول</button>
   </div>
 </header>
 
-<!-- الأقسام -->
-<div class="box">
-  <button onclick="filterCat('all')">الكل</button>
-  <button onclick="filterCat('apps')">📱 تطبيقات</button>
-  <button onclick="filterCat('items')">🧩 أشياء</button>
+<!-- تسجيل الدخول -->
+<div id="loginBox" class="card hidden">
+  <h3>تسجيل الدخول</h3>
+  <input id="email" placeholder="الإيميل">
+  <button onclick="login()">دخول</button>
+  <button onclick="googleLogin()">تسجيل الدخول عبر Google</button>
+</div>
+
+<!-- إضافة منتج (أدمن فقط) -->
+<div id="adminPanel" class="card hidden">
+  <h3>إضافة منتج</h3>
+  <input id="pName" placeholder="اسم المنتج">
+  <input id="pPrice" placeholder="السعر">
+  <select id="pCat">
+    <option>تطبيقات</option>
+    <option>أشياء</option>
+  </select>
+  <input id="pImg" placeholder="رابط الصورة">
+  <textarea id="pDesc" placeholder="وصف المنتج"></textarea>
+  <input id="pBalance" placeholder="الرصيد / الكمية">
+  <button onclick="addProduct()">إضافة</button>
 </div>
 
 <!-- المنتجات -->
-<div class="products" id="products"></div>
+<div id="products"></div>
 
-<!-- تسجيل الدخول -->
-<div class="box hidden" id="loginBox">
-  <h3>تسجيل الدخول</h3>
-  <input id="name" placeholder="الاسم">
-  <input id="email" placeholder="الإيميل">
-  <input id="pass" type="password" placeholder="كلمة المرور">
-  <button onclick="login()">دخول</button>
-  <button onclick="googleLogin()">تسجيل عبر Google</button>
-</div>
-
-<!-- لوحة الأدمن (مخفية) -->
-<div class="box hidden" id="adminBox">
-  <h3>إضافة منتج</h3>
-  <input id="pname" placeholder="اسم المنتج">
-  <textarea id="pdesc" placeholder="وصف المنتج"></textarea>
-  <input id="pid" placeholder="ID (مثال فري فاير)">
-  <input id="pbalance" placeholder="الرصيد / الكمية">
-  <input id="pprice" type="number" placeholder="السعر">
-  <input id="pimg" placeholder="رابط صورة">
-  <select id="pcat">
-    <option value="apps">تطبيقات</option>
-    <option value="items">أشياء</option>
-  </select>
-  <button onclick="addProduct()">إضافة المنتج</button>
-  <hr>
-  <div id="adminProducts"></div>
-  <hr>
-  <h4>طلبات تعبئة الرصيد</h4>
-  <div id="charges"></div>
-</div>
-
-<!-- تعبئة الرصيد -->
-<div class="box hidden" id="chargeBox">
+<!-- تعبئة رصيد -->
+<div class="card">
   <h3>تعبئة رصيد</h3>
-  <p>حوّل إلى الحساب:</p>
+  <p>التحويل إلى:</p>
   <b>29607b06505ee18f34a7fc5022404325</b>
-  <input id="camount" placeholder="المبلغ">
-  <input id="cimg" placeholder="رابط صورة التحويل">
-  <button onclick="sendCharge()">إرسال الطلب</button>
+  <input id="chargeAmount" placeholder="المبلغ">
+  <input id="chargeImg" placeholder="رابط صورة التحويل">
+  <button onclick="sendCharge()">إرسال</button>
 </div>
 
 <script>
-const ADMIN="wled49645@gmail.com";
-let products=JSON.parse(localStorage.getItem("products"))||[];
-let charges=JSON.parse(localStorage.getItem("charges"))||[];
-let currentUser=JSON.parse(localStorage.getItem("user"));
+const ADMIN = "wled49645@gmail.com";
+let currentUser = null;
+let products = JSON.parse(localStorage.getItem("products")||"[]");
+let charges = JSON.parse(localStorage.getItem("charges")||"[]");
 
-function render(cat="all"){
-  const box=document.getElementById("products");
-  box.innerHTML="";
-  products.filter(p=>cat==="all"||p.cat===cat).forEach(p=>{
-    box.innerHTML+=`
-    <div class="product">
-      <img src="${p.img}">
-      <b>${p.name}</b>
-      <p>${p.desc}</p>
-      <small>ID: ${p.pid}</small><br>
-      <small>الرصيد: ${p.balance}</small>
-      <p>${p.price}$</p>
-    </div>`;
-  });
+function openLogin(){
+  document.getElementById("loginBox").classList.toggle("hidden");
 }
-render();
-
-function filterCat(c){render(c)}
-
-function showLogin(){toggle("loginBox")}
-function showSection(id){toggle(id+"Box")}
 
 function login(){
-  currentUser={name:name.value,email:email.value};
-  localStorage.setItem("user",JSON.stringify(currentUser));
-  document.getElementById("userName").innerText="👋 "+currentUser.name;
-  document.getElementById("loginBtn").style.display="none";
-  toggle();
-  if(currentUser.email===ADMIN){
-    document.getElementById("adminBox").classList.remove("hidden");
-    renderAdmin();
+  const email = document.getElementById("email").value;
+  if(!email) return alert("اكتب الإيميل");
+  currentUser = email;
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("userBox").innerHTML = email;
+  if(email === ADMIN){
+    document.getElementById("adminPanel").classList.remove("hidden");
   }
 }
 
 function googleLogin(){
-  alert("سيتم ربط Google لاحقًا عبر Firebase");
+  alert("واجهة Google فقط — اربطها لاحقًا بـ Firebase");
 }
 
 function addProduct(){
   products.push({
-    name:pname.value,
-    desc:pdesc.value,
-    pid:pid.value,
-    balance:pbalance.value,
-    price:pprice.value,
-    img:pimg.value,
-    cat:pcat.value
+    name:pName.value,
+    price:pPrice.value,
+    cat:pCat.value,
+    img:pImg.value,
+    desc:pDesc.value,
+    bal:pBalance.value
   });
   localStorage.setItem("products",JSON.stringify(products));
   render();
-  renderAdmin();
 }
 
-function renderAdmin(){
-  const box=document.getElementById("adminProducts");
+function render(){
+  const box=document.getElementById("products");
   box.innerHTML="";
-  products.forEach((p,i)=>{
-    box.innerHTML+=`${p.name} <button onclick="del(${i})">حذف</button><br>`;
+  products.forEach(p=>{
+    box.innerHTML+=`
+    <div class="card">
+      <img src="${p.img}">
+      <h4>${p.name}</h4>
+      <p>${p.desc}</p>
+      <p>القسم: ${p.cat}</p>
+      <p>الرصيد: ${p.bal}</p>
+      <b>${p.price}</b>
+      <input placeholder="ID الخاص بك">
+      <textarea placeholder="وصف إضافي"></textarea>
+    </div>`;
   });
-  const c=document.getElementById("charges");
-  c.innerHTML="";
-  charges.forEach(o=>{
-    c.innerHTML+=`💰 ${o.amount} | <img src="${o.img}" width="80"><hr>`;
-  });
-}
-
-function del(i){
-  products.splice(i,1);
-  localStorage.setItem("products",JSON.stringify(products));
-  render();renderAdmin();
 }
 
 function sendCharge(){
-  charges.push({amount:camount.value,img:cimg.value});
+  charges.push({
+    amount:chargeAmount.value,
+    img:chargeImg.value
+  });
   localStorage.setItem("charges",JSON.stringify(charges));
   alert("تم إرسال الطلب");
-  toggle();
 }
 
-function toggle(id){
-  document.querySelectorAll(".box").forEach(b=>b.classList.add("hidden"));
-  if(id) document.getElementById(id).classList.remove("hidden");
-}
-
-if(currentUser){
-  document.getElementById("userName").innerText="👋 "+currentUser.name;
-  document.getElementById("loginBtn").style.display="none";
-  if(currentUser.email===ADMIN){
-    document.getElementById("adminBox").classList.remove("hidden");
-    renderAdmin();
-  }
-}
+render();
 </script>
 
 </body>
