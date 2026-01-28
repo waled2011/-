@@ -3,21 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <title>Best Store</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body{font-family:tahoma;background:#111;color:#fff;margin:0}
-header{background:#000;padding:15px;display:flex;justify-content:space-between;align-items:center}
-button{background:#00c3ff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer}
-input,select,textarea{width:100%;margin:5px 0;padding:6px}
+body{
+  margin:0;font-family:tahoma;
+  background:#0f172a;color:#fff
+}
+header{
+  background:#020617;padding:15px;
+  display:flex;justify-content:space-between;align-items:center
+}
+button{
+  background:#2563eb;color:#fff;
+  border:none;border-radius:8px;
+  padding:8px 14px;cursor:pointer
+}
+input,select,textarea{
+  width:100%;padding:8px;margin:5px 0;
+  border-radius:6px;border:none
+}
+.card{
+  background:#020617;border-radius:14px;
+  padding:15px;margin:15px
+}
+.products{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:15px;padding:10px
+}
+.product img{
+  width:100%;border-radius:10px
+}
 .hidden{display:none}
-.card{background:#1c1c1c;margin:10px;padding:10px;border-radius:8px}
-img{max-width:100%;border-radius:6px}
+.badge{background:#16a34a;padding:4px 8px;border-radius:6px}
+.delete{background:#dc2626;margin-top:5px}
 </style>
 </head>
+
 <body>
 
 <header>
-  <b>BEST STORE</b>
+  <div>
+    <b>BEST STORE</b><br>
+    <small>رصيدك: <span id="balance">0</span></small>
+  </div>
   <div id="userBox">
     <button onclick="openLogin()">تسجيل الدخول</button>
   </div>
@@ -26,12 +55,11 @@ img{max-width:100%;border-radius:6px}
 <!-- تسجيل الدخول -->
 <div id="loginBox" class="card hidden">
   <h3>تسجيل الدخول</h3>
-  <input id="email" placeholder="الإيميل">
+  <input id="email" placeholder="اكتب الإيميل">
   <button onclick="login()">دخول</button>
-  <button onclick="googleLogin()">تسجيل الدخول عبر Google</button>
 </div>
 
-<!-- إضافة منتج (أدمن فقط) -->
+<!-- لوحة الأدمن -->
 <div id="adminPanel" class="card hidden">
   <h3>إضافة منتج</h3>
   <input id="pName" placeholder="اسم المنتج">
@@ -40,88 +68,103 @@ img{max-width:100%;border-radius:6px}
     <option>تطبيقات</option>
     <option>أشياء</option>
   </select>
-  <input id="pImg" placeholder="رابط الصورة">
   <textarea id="pDesc" placeholder="وصف المنتج"></textarea>
-  <input id="pBalance" placeholder="الرصيد / الكمية">
-  <button onclick="addProduct()">إضافة</button>
+  <input id="pQty" placeholder="الرصيد / الكمية">
+  <input type="file" id="pImg">
+  <button onclick="addProduct()">إضافة المنتج</button>
 </div>
 
 <!-- المنتجات -->
-<div id="products"></div>
+<div class="products" id="products"></div>
 
-<!-- تعبئة رصيد -->
+<!-- تعبئة الرصيد -->
 <div class="card">
-  <h3>تعبئة رصيد</h3>
-  <p>التحويل إلى:</p>
+  <h3>تعبئة الرصيد عبر شام كاش</h3>
+  <p>التحويل إلى الحساب:</p>
   <b>29607b06505ee18f34a7fc5022404325</b>
   <input id="chargeAmount" placeholder="المبلغ">
-  <input id="chargeImg" placeholder="رابط صورة التحويل">
-  <button onclick="sendCharge()">إرسال</button>
+  <input type="file" id="chargeImg">
+  <button onclick="charge()">إرسال طلب التعبئة</button>
 </div>
 
 <script>
-const ADMIN = "wled49645@gmail.com";
-let currentUser = null;
-let products = JSON.parse(localStorage.getItem("products")||"[]");
-let charges = JSON.parse(localStorage.getItem("charges")||"[]");
+const ADMIN="wled49645@gmail.com";
+let user=localStorage.getItem("user");
+let balance=parseInt(localStorage.getItem("balance")||0);
+let products=JSON.parse(localStorage.getItem("products")||"[]");
+
+balanceSpan.innerText=balance;
+
+if(user){
+  userBox.innerHTML=user;
+  if(user===ADMIN) adminPanel.classList.remove("hidden");
+}
 
 function openLogin(){
-  document.getElementById("loginBox").classList.toggle("hidden");
+  loginBox.classList.toggle("hidden");
 }
 
 function login(){
-  const email = document.getElementById("email").value;
-  if(!email) return alert("اكتب الإيميل");
-  currentUser = email;
-  document.getElementById("loginBox").classList.add("hidden");
-  document.getElementById("userBox").innerHTML = email;
-  if(email === ADMIN){
-    document.getElementById("adminPanel").classList.remove("hidden");
-  }
-}
-
-function googleLogin(){
-  alert("واجهة Google فقط — اربطها لاحقًا بـ Firebase");
+  let e=email.value;
+  if(!e)return;
+  user=e;
+  localStorage.setItem("user",e);
+  userBox.innerHTML=e;
+  loginBox.classList.add("hidden");
+  if(e===ADMIN) adminPanel.classList.remove("hidden");
 }
 
 function addProduct(){
-  products.push({
-    name:pName.value,
-    price:pPrice.value,
-    cat:pCat.value,
-    img:pImg.value,
-    desc:pDesc.value,
-    bal:pBalance.value
-  });
+  let file=pImg.files[0];
+  let reader=new FileReader();
+  reader.onload=()=>{
+    products.push({
+      name:pName.value,
+      price:pPrice.value,
+      cat:pCat.value,
+      desc:pDesc.value,
+      qty:pQty.value,
+      img:reader.result
+    });
+    localStorage.setItem("products",JSON.stringify(products));
+    render();
+  };
+  reader.readAsDataURL(file);
+}
+
+function deleteProduct(i){
+  products.splice(i,1);
   localStorage.setItem("products",JSON.stringify(products));
   render();
 }
 
 function render(){
-  const box=document.getElementById("products");
-  box.innerHTML="";
-  products.forEach(p=>{
-    box.innerHTML+=`
-    <div class="card">
+  productsBox.innerHTML="";
+  products.forEach((p,i)=>{
+    productsBox.innerHTML+=`
+    <div class="card product">
       <img src="${p.img}">
       <h4>${p.name}</h4>
+      <span class="badge">${p.cat}</span>
       <p>${p.desc}</p>
-      <p>القسم: ${p.cat}</p>
-      <p>الرصيد: ${p.bal}</p>
+      <p>الرصيد: ${p.qty}</p>
       <b>${p.price}</b>
       <input placeholder="ID الخاص بك">
       <textarea placeholder="وصف إضافي"></textarea>
+      ${user===ADMIN?`<button class="delete" onclick="deleteProduct(${i})">حذف</button>`:""}
     </div>`;
   });
 }
 
-function sendCharge(){
-  charges.push({
-    amount:chargeAmount.value,
-    img:chargeImg.value
-  });
-  localStorage.setItem("charges",JSON.stringify(charges));
-  alert("تم إرسال الطلب");
+function charge(){
+  let file=chargeImg.files[0];
+  if(!file)return alert("أضف صورة التحويل");
+  let amount=parseInt(chargeAmount.value);
+  if(!amount)return;
+  balance+=amount;
+  localStorage.setItem("balance",balance);
+  balanceSpan.innerText=balance;
+  alert("تم إرسال الطلب وسيتم المراجعة");
 }
 
 render();
