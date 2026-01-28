@@ -1,163 +1,63 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-<meta charset="UTF-8">
-<title>Store Engine</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+// denji_api_full.js
+const axios = require("axios");
 
-<style>
-:root{
-  --bg:#0b1220;
-  --panel:#111827;
-  --accent:#38bdf8;
-  --text:#e5e7eb;
-  --muted:#9ca3af;
-}
-*{box-sizing:border-box;font-family:system-ui}
-body{margin:0;background:var(--bg);color:var(--text)}
-header{
-  padding:14px;
-  background:#020617;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-header span{color:var(--accent);font-weight:bold}
-main{padding:15px;max-width:1100px;margin:auto}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-  gap:15px;
-}
-.product{
-  background:var(--panel);
-  border-radius:14px;
-  padding:15px;
-  display:flex;
-  flex-direction:column;
-}
-.product h3{margin:0;font-size:16px}
-.product p{font-size:13px;color:var(--muted)}
-.price{margin-top:auto;font-size:18px;color:var(--accent)}
-.product button{
-  margin-top:8px;
-  padding:8px;
-  border:none;
-  border-radius:8px;
-  background:var(--accent);
-  font-weight:bold;
-  cursor:pointer;
-}
-.cartBtn{
-  background:var(--accent);
-  color:#000;
-  padding:6px 12px;
-  border-radius:20px;
-  cursor:pointer;
-}
-aside{
-  position:fixed;
-  right:-360px;
-  top:0;
-  width:340px;
-  height:100%;
-  background:#020617;
-  padding:15px;
-  transition:.3s;
-}
-aside.active{right:0}
-.cartItem{
-  border-bottom:1px solid #1f2933;
-  padding:6px 0;
-  font-size:14px;
-}
-.total{
-  margin-top:10px;
-  font-size:18px;
-}
-.close{
-  background:#ef4444;
-  border:none;
-  width:100%;
-  padding:8px;
-  border-radius:8px;
-  margin-top:10px;
-  color:#fff;
-}
-</style>
-</head>
+const BASE_URL = "http://api.denji-sms.xyz/api/v1";
 
-<body>
+async function run() {
+  try {
+    // 1️⃣ جلب الرصيد
+    const balance = await axios.get(`${BASE_URL}/account/balance`);
+    console.log("💰 الرصيد:", balance.data);
 
-<header>
-  <div>🛒 <span>Store Engine</span></div>
-  <div class="cartBtn" onclick="toggleCart()">السلة (<span id="count">0</span>)</div>
-</header>
+    // 2️⃣ الأرقام المتاحة
+    const availableNumbers = await axios.get(`${BASE_URL}/numbers/available`);
+    console.log("📱 الأرقام المتاحة:", availableNumbers.data);
 
-<main>
-  <div class="grid" id="store"></div>
-</main>
+    // 3️⃣ طلب رقم (Google - Thailand)
+    const requestNumber = await axios.post(
+      `${BASE_URL}/numbers/request`,
+      { api_code: "th_go_s2" },
+      { headers: { "Content-Type": "application/json" } }
+    );
 
-<aside id="cart">
-  <h3>سلة الطلب</h3>
-  <div id="items"></div>
-  <div class="total" id="sum">الإجمالي: $0</div>
-  <button class="close" onclick="toggleCart()">إغلاق</button>
-</aside>
+    const requestId = requestNumber.data.data.request_id;
+    console.log("📞 تم طلب الرقم:", requestNumber.data);
 
-<script>
-/* =====================
-   Store Core (عام)
-===================== */
+    // 4️⃣ فحص حالة الرقم (استلام الكود)
+    const numberStatus = await axios.get(
+      `${BASE_URL}/numbers/status/${requestId}`
+    );
+    console.log("🔐 حالة الرقم:", numberStatus.data);
 
-// منتجات – أي شخص يغيرها
-const STORE_PRODUCTS = [
-  {id:1,title:"منتج رقمي",price:5,desc:"وصف عام"},
-  {id:2,title:"اشتراك شهري",price:10,desc:"صالح 30 يوم"},
-  {id:3,title:"خدمة إلكترونية",price:2.5,desc:"تنفيذ سريع"},
-  {id:4,title:"عنصر مخصص",price:1,desc:"قابل للتعديل"}
-];
+    // 5️⃣ خدمات السوشيال المتاحة
+    const socialAvailable = await axios.get(
+      `${BASE_URL}/social/available`
+    );
+    console.log("📊 خدمات السوشيال:", socialAvailable.data);
 
-// السلة
-let CART = [];
+    // 6️⃣ طلب خدمة سوشيال (TikTok Followers)
+    const socialRequest = await axios.post(
+      `${BASE_URL}/social/request`,
+      {
+        api_code: "tk_fy",
+        qty: 1000,
+        link: "https://www.tiktok.com/@username/video/12345"
+      },
+      { headers: { "Content-Type": "application/json" } }
+    );
 
-// عرض المتجر
-const store = document.getElementById("store");
-STORE_PRODUCTS.forEach(p=>{
-  store.innerHTML += `
-  <div class="product">
-    <h3>${p.title}</h3>
-    <p>${p.desc}</p>
-    <div class="price">$${p.price}</div>
-    <button onclick="add(${p.id})">إضافة</button>
-  </div>`;
-});
+    const socialRequestId = socialRequest.data.data.request_id;
+    console.log("🚀 تم طلب خدمة السوشيال:", socialRequest.data);
 
-// إضافة للسلة
-function add(id){
-  const product = STORE_PRODUCTS.find(p=>p.id===id);
-  CART.push(product);
-  render();
+    // 7️⃣ متابعة حالة خدمة السوشيال
+    const socialStatus = await axios.get(
+      `${BASE_URL}/social/status/${socialRequestId}`
+    );
+    console.log("📦 حالة طلب السوشيال:", socialStatus.data);
+
+  } catch (error) {
+    console.error("❌ خطأ:", error.response?.data || error.message);
+  }
 }
 
-// تحديث السلة
-function render(){
-  const items = document.getElementById("items");
-  items.innerHTML="";
-  let total=0;
-  CART.forEach(p=>{
-    total+=p.price;
-    items.innerHTML += `<div class="cartItem">${p.title} - $${p.price}</div>`;
-  });
-  document.getElementById("sum").innerText = "الإجمالي: $" + total;
-  document.getElementById("count").innerText = CART.length;
-}
-
-// فتح / إغلاق السلة
-function toggleCart(){
-  document.getElementById("cart").classList.toggle("active");
-}
-</script>
-
-</body>
-</html>
+run();
