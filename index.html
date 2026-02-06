@@ -1,113 +1,76 @@
-<?php
-// ====== إعداد الاتصال ======
-$conn = new mysqli("localhost","root","","charging");
-if($conn->connect_error){
- die("فشل الاتصال بقاعدة البيانات");
-}
+ALTER TABLE orders 
+ADD payment_code VARCHAR(200),
+ADD payment_status VARCHAR(30) DEFAULT 'بانتظار الدفع';
+<?php if($page=="order"){ ?>
+<h2>شحن <?=$_GET['service']?></h2>
 
-// ====== حفظ الطلب ======
-if(isset($_POST['send'])){
-$service=$_POST['service'];
-$player=$_POST['player_id'];
-$package=$_POST['package'];
-
-$conn->query("INSERT INTO orders(service,player_id,package) 
-VALUES('$service','$player','$package')");
-
-echo "<p style='color:lime'>تم إرسال الطلب بنجاح</p>";
-}
-
-// ====== تحديد الصفحة ======
-$page = $_GET['page'] ?? "home";
-?>
-
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-<meta charset="UTF-8">
-<title>متجر الشحن</title>
-<style>
-body{background:#0f172a;color:white;font-family:Arial;text-align:center}
-.card{background:#1e293b;padding:20px;margin:15px;border-radius:12px}
-button{background:#22c55e;border:none;padding:10px 20px;color:white;border-radius:8px}
-input,select{padding:8px;border-radius:6px;border:none}
-a{color:#22c55e;text-decoration:none}
-table{margin:auto;color:white}
-</style>
-</head>
-<body>
-
-<h1>⚡ متجر شحن التطبيقات</h1>
-
-<?php if($page=="home"){ ?>
-
-<div class="card">
-<a href="?page=order&service=FreeFire"><button>شحن فري فاير</button></a>
+<div style="background:#1e293b;padding:15px;border-radius:10px">
+<p>💳 الدفع عبر شام كاش</p>
+<p>رقم الدفع:</p>
+<b style="color:#22c55e">29607b06505ee18f34a7fc5022404325</b>
 </div>
-
-<div class="card">
-<a href="?page=order&service=PUBG"><button>شحن ببجي</button></a>
-</div>
-
-<div class="card">
-<a href="?page=admin"><button>لوحة التحكم</button></a>
-</div>
-
-<?php } ?>
-
-
-<?php if($page=="order"){ $service=$_GET['service']; ?>
-
-<h2>طلب شحن <?php echo $service ?></h2>
-
-<form method="POST">
-<input type="hidden" name="service" value="<?php echo $service ?>">
 
 <br>
-<input name="player_id" placeholder="ID اللاعب" required><br><br>
 
-<select name="package">
+<form method="POST">
+<input type="hidden" name="service" value="<?=$_GET['service']?>">
+
+<input name="player" placeholder="ID اللاعب" required><br><br>
+
+<select name="pack">
+<option>5$</option>
 <option>10$</option>
-<option>20$</option>
-<option>50$</option>
+<option>25$</option>
 </select><br><br>
 
-<button name="send">إرسال الطلب</button>
+<input name="payment_code" placeholder="ضع رقم عملية التحويل" required><br><br>
+
+<button name="order">تأكيد الدفع</button>
 </form>
-
-<a href="site.php">رجوع</a>
-
 <?php } ?>
+if(isset($_POST['order'])){
+$u=$_SESSION['user']['id'];
+$s=$_POST['service'];
+$id=$_POST['player'];
+$p=$_POST['pack'];
+$pay=$_POST['payment_code'];
 
-
+$conn->query("INSERT INTO orders
+(user_id,service,player_id,package,payment_code,payment_status)
+VALUES('$u','$s','$id','$p','$pay','بانتظار التأكيد')");
+}
 <?php if($page=="admin"){ 
-$res=$conn->query("SELECT * FROM orders");
+$r=$conn->query("SELECT * FROM orders");
 ?>
-
-<h2>📋 الطلبات</h2>
 
 <table border="1" cellpadding="5">
 <tr>
 <th>الخدمة</th>
-<th>ID اللاعب</th>
+<th>ID</th>
 <th>الباقة</th>
+<th>كود الدفع</th>
 <th>الحالة</th>
+<th>تأكيد</th>
 </tr>
 
-<?php while($row=$res->fetch_assoc()){ ?>
+<?php while($row=$r->fetch_assoc()){ ?>
 <tr>
-<td><?= $row['service'] ?></td>
-<td><?= $row['player_id'] ?></td>
-<td><?= $row['package'] ?></td>
-<td><?= $row['status'] ?></td>
+<td><?=$row['service']?></td>
+<td><?=$row['player_id']?></td>
+<td><?=$row['package']?></td>
+<td><?=$row['payment_code']?></td>
+<td><?=$row['payment_status']?></td>
+<td>
+<a href="?confirm=<?=$row['id']?>">✅</a>
+</td>
 </tr>
 <?php } ?>
-
 </table>
-
-<a href="site.php">رجوع</a>
-
 <?php } ?>
 
-</body>
-</html>
+<?php
+if(isset($_GET['confirm'])){
+$id=$_GET['confirm'];
+$conn->query("UPDATE orders SET payment_status='تم الدفع' WHERE id='$id'");
+}
+?>
