@@ -1,103 +1,113 @@
-<!DOCTYPE html><html lang="ar">
+<?php
+// ====== إعداد الاتصال ======
+$conn = new mysqli("localhost","root","","charging");
+if($conn->connect_error){
+ die("فشل الاتصال بقاعدة البيانات");
+}
+
+// ====== حفظ الطلب ======
+if(isset($_POST['send'])){
+$service=$_POST['service'];
+$player=$_POST['player_id'];
+$package=$_POST['package'];
+
+$conn->query("INSERT INTO orders(service,player_id,package) 
+VALUES('$service','$player','$package')");
+
+echo "<p style='color:lime'>تم إرسال الطلب بنجاح</p>";
+}
+
+// ====== تحديد الصفحة ======
+$page = $_GET['page'] ?? "home";
+?>
+
+<!DOCTYPE html>
+<html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Prototype Shooter</title>
-  <style>
-    body, html { margin:0; padding:0; background:#0f1220; color:#fff; font-family:system-ui; }
-    #ui { position:fixed; inset:0; pointer-events:none; }
-    .panel { pointer-events:auto; background:rgba(0,0,0,.6); border-radius:12px; padding:12px; }
-    #login { position:absolute; top:20px; left:20px; width:260px; }
-    #hud { position:absolute; bottom:20px; left:20px; display:flex; gap:10px; }
-    button { background:#4f46e5; color:#fff; border:0; border-radius:10px; padding:8px 12px; cursor:pointer; }
-    input, select { width:100%; margin:6px 0; padding:8px; border-radius:8px; border:0; }
-    canvas { display:block; }
-  </style>
+<meta charset="UTF-8">
+<title>متجر الشحن</title>
+<style>
+body{background:#0f172a;color:white;font-family:Arial;text-align:center}
+.card{background:#1e293b;padding:20px;margin:15px;border-radius:12px}
+button{background:#22c55e;border:none;padding:10px 20px;color:white;border-radius:8px}
+input,select{padding:8px;border-radius:6px;border:none}
+a{color:#22c55e;text-decoration:none}
+table{margin:auto;color:white}
+</style>
 </head>
 <body>
-  <div id="ui">
-    <div id="login" class="panel">
-      <h3>تسجيل الدخول (وهمي)</h3>
-      <input id="username" placeholder="اسم اللاعب" />
-      <button onclick="login()">دخول</button>
-      <hr/>
-      <label>السكن</label>
-      <select id="skin" onchange="applySkin()">
-        <option value="#22c55e">أخضر</option>
-        <option value="#ef4444">أحمر</option>
-        <option value="#3b82f6">أزرق</option>
-      </select>
-      <p id="profile"></p>
-    </div>
-    <div id="hud" class="panel">
-      <button onclick="shoot()">إطلاق</button>
-      <button onclick="jump()">قفز</button>
-    </div>
-  </div>  <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0f1220);
-    const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
-    camera.position.set(0, 1.6, 5);
+<h1>⚡ متجر شحن التطبيقات</h1>
 
-    const renderer = new THREE.WebGLRenderer({ antialias:true });
-    renderer.setSize(innerWidth, innerHeight);
-    document.body.appendChild(renderer.domElement);
+<?php if($page=="home"){ ?>
 
-    const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
-    scene.add(light);
+<div class="card">
+<a href="?page=order&service=FreeFire"><button>شحن فري فاير</button></a>
+</div>
 
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(100,100),
-      new THREE.MeshStandardMaterial({ color:0x1f2937 })
-    );
-    ground.rotation.x = -Math.PI/2;
-    scene.add(ground);
+<div class="card">
+<a href="?page=order&service=PUBG"><button>شحن ببجي</button></a>
+</div>
 
-    let playerMat = new THREE.MeshStandardMaterial({ color:0x22c55e });
-    const player = new THREE.Mesh(new THREE.BoxGeometry(1,1.8,1), playerMat);
-    player.position.y = 0.9;
-    scene.add(player);
+<div class="card">
+<a href="?page=admin"><button>لوحة التحكم</button></a>
+</div>
 
-    const bullets = [];
-    function shoot(){
-      const b = new THREE.Mesh(new THREE.SphereGeometry(0.05), new THREE.MeshBasicMaterial({color:0xffff00}));
-      b.position.copy(player.position);
-      b.velocity = new THREE.Vector3(0,0,-0.5);
-      scene.add(b);
-      bullets.push(b);
-    }
-    window.shoot = shoot;
+<?php } ?>
 
-    function jump(){ player.position.y = 1.6; setTimeout(()=>player.position.y=0.9, 300); }
-    window.jump = jump;
 
-    function animate(){
-      requestAnimationFrame(animate);
-      bullets.forEach(b=> b.position.add(b.velocity));
-      renderer.render(scene, camera);
-    }
-    animate();
+<?php if($page=="order"){ $service=$_GET['service']; ?>
 
-    window.addEventListener('resize', ()=>{
-      camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
-      renderer.setSize(innerWidth, innerHeight);
-    });
+<h2>طلب شحن <?php echo $service ?></h2>
 
-    // نظام حساب بسيط (LocalStorage)
-    window.login = ()=>{
-      const u = document.getElementById('username').value || 'Guest';
-      localStorage.setItem('user', u);
-      document.getElementById('profile').innerText = `الملف الشخصي: ${u}`;
-    };
-    window.applySkin = ()=>{
-      const c = document.getElementById('skin').value;
-      playerMat.color.set(c);
-      localStorage.setItem('skin', c);
-    };
+<form method="POST">
+<input type="hidden" name="service" value="<?php echo $service ?>">
 
-    const saved = localStorage.getItem('skin'); if(saved) playerMat.color.set(saved);
-    const su = localStorage.getItem('user'); if(su) document.getElementById('profile').innerText = `الملف الشخصي: ${su}`;
-  </script></body>
+<br>
+<input name="player_id" placeholder="ID اللاعب" required><br><br>
+
+<select name="package">
+<option>10$</option>
+<option>20$</option>
+<option>50$</option>
+</select><br><br>
+
+<button name="send">إرسال الطلب</button>
+</form>
+
+<a href="site.php">رجوع</a>
+
+<?php } ?>
+
+
+<?php if($page=="admin"){ 
+$res=$conn->query("SELECT * FROM orders");
+?>
+
+<h2>📋 الطلبات</h2>
+
+<table border="1" cellpadding="5">
+<tr>
+<th>الخدمة</th>
+<th>ID اللاعب</th>
+<th>الباقة</th>
+<th>الحالة</th>
+</tr>
+
+<?php while($row=$res->fetch_assoc()){ ?>
+<tr>
+<td><?= $row['service'] ?></td>
+<td><?= $row['player_id'] ?></td>
+<td><?= $row['package'] ?></td>
+<td><?= $row['status'] ?></td>
+</tr>
+<?php } ?>
+
+</table>
+
+<a href="site.php">رجوع</a>
+
+<?php } ?>
+
+</body>
 </html>
